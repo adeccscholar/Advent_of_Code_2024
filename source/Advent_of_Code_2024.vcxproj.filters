@@ -1,0 +1,75 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ItemGroup>
+    <ClCompile Include="MainWindow.cpp">
+      <Filter>Source</Filter>
+    </ClCompile>
+    <ClCompile Include="main.cpp">
+      <Filter>Source</Filter>
+    </ClCompile>
+    <ClCompile Include="processes_aoc2024.cpp">
+      <Filter>Source</Filter>
+    </ClCompile>
+    <ClCompile Include="processes_aoc_2024_test.cpp">
+      <Filter>Source</Filter>
+    </ClCompile>
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="Header.h">
+      <Filter>Header</Filter>
+    </ClInclude>
+    <ClInclude Include="my_ranges_tools.h">
+      <Filter>Header</Filter>
+    </ClInclude>
+    <ClInclude Include="my_grid_view.h">
+      <Filter>Header</Filter>
+    </ClInclude>
+    <ClInclude Include="processes_aoc2024.h">
+      <Filter>Header</Filter>
+    </ClInclude>
+    <ClInclude Include="qt_form.h">
+      <Filter>Header</Filter>
+    </ClInclude>
+    <ClInclude Include="qt_iteratoren.h">
+      <Filter>Header</Filter>
+    </ClInclude>
+    <ClInclude Include="qt_stream.h">
+      <Filter>Header</Filter>
+    </ClInclude>
+    <ClInclude Include="qt_web_tools.h">
+      <Filter>Header</Filter>
+    </ClInclude>
+    <ClInclude Include="my_common_tools.h">
+      <Filter>Header</Filter>
+    </ClInclude>
+  </ItemGroup>
+  <ItemGroup>
+    <Filter Include="Header">
+      <UniqueIdentifier>{90469da1-b67a-4b1d-b57d-a702be8750f9}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source">
+      <UniqueIdentifier>{124cbc4b-f6f2-4ba0-b261-863cebe18b7e}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Ressource">
+      <UniqueIdentifier>{fdc10d79-858d-4097-bc43-f2e3a59a4dc6}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Form">
+      <UniqueIdentifier>{1502aa93-8f7f-4c8c-982f-dab3e9a45ea4}</UniqueIdentifier>
+    </Filter>
+  </ItemGroup>
+  <ItemGroup>
+    <QtMoc Include="MainWindow.h">
+      <Filter>Header</Filter>
+    </QtMoc>
+  </ItemGroup>
+  <ItemGroup>
+    <QtRcc Include="MainWindow.qrc">
+      <Filter>Ressource</Filter>
+    </QtRcc>
+  </ItemGroup>
+  <ItemGroup>
+    <QtUic Include="MainWindow.ui">
+      <Filter>Form</Filter>
+    </QtUic>
+  </ItemGroup>
+</Project>
