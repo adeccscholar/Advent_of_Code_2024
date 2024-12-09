@@ -123,6 +123,7 @@
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Header.h" />
+    <ClInclude Include="my_grid2d.h" />
     <ClInclude Include="my_grid_view.h" />
     <ClInclude Include="processes_aoc2024.h" />
     <ClInclude Include="qt_form.h" />

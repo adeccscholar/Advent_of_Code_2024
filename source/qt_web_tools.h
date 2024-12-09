@@ -35,7 +35,7 @@ inline void call_URL_with_qt(std::string const& strUrl) {
       }
    }
 
-inline std::string getTextFromUrl(std::string const& strUrl) {
+inline QString getQTextFromUrl(std::string const& strUrl) {
    QWebEngineView webView;
    QEventLoop loop;
    QUrl url(QString::fromStdString(strUrl));
@@ -51,7 +51,11 @@ inline std::string getTextFromUrl(std::string const& strUrl) {
       pageText = result.toString();
       });
 
-   loop.exec();
+   //loop.exec();
 
-   return pageText.toStdString();
+   return pageText;
+   }
+
+inline std::string getTextFromUrl(std::string const& strUrl) {
+   return getQTextFromUrl(strUrl).toStdString();
    }

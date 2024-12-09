@@ -70,8 +70,8 @@ void MainWindow::Init() {
 
 void MainWindow::Description() {
    TMyForm frm(this);
-   ////auto text = getTextFromUrl("https://adventofcode.com/2024/day/1/input");
    call_URL_with_qt(std::get<2>(TAOC2024Processes::GetData(frm.CurrentText("cbxOldRiddles"))));
+   //ui.memInput->setText(getQTextFromUrl(std::get<2>(TAOC2024Processes::GetData(frm.CurrentText("cbxOldRiddles")))));
    }
 
 void MainWindow::DataURL() {
@@ -82,6 +82,7 @@ void MainWindow::DataURL() {
 void MainWindow::PasteData() {
    TMyForm frm(this);
    TMyWait wait("memInput"s);
+   frm.SetCheckBox("chkTestData"s, false);
    std::ostream oss(frm.GetAsStreamBuf("memInput"s, true));
    std::println(oss, "{}", getClipboardContent());
    return;
@@ -111,7 +112,7 @@ void MainWindow::CopyResult_1_Clipboard() {
    }
 
 void MainWindow::CopyResult_2_Clipboard() {
-   QApplication::clipboard()->setText(ui.edtResult_1->text());
+   QApplication::clipboard()->setText(ui.edtResult_2->text());
    }
 
 void MainWindow::TestCase() {

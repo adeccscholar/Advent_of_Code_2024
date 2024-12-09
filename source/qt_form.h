@@ -39,6 +39,9 @@ public:
       std::swap(frm, ref.frm);
       }
 
+
+   // operator QWidget* () { return frm; }
+
    static void ProcessEvents(void) {
       QApplication::processEvents();
       }

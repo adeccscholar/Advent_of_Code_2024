@@ -18,29 +18,32 @@
     <ClInclude Include="Header.h">
       <Filter>Header</Filter>
     </ClInclude>
-    <ClInclude Include="my_ranges_tools.h">
-      <Filter>Header</Filter>
-    </ClInclude>
-    <ClInclude Include="my_grid_view.h">
-      <Filter>Header</Filter>
-    </ClInclude>
     <ClInclude Include="processes_aoc2024.h">
       <Filter>Header</Filter>
     </ClInclude>
     <ClInclude Include="qt_form.h">
-      <Filter>Header</Filter>
+      <Filter>Header - Qt Wrapper</Filter>
     </ClInclude>
     <ClInclude Include="qt_iteratoren.h">
-      <Filter>Header</Filter>
+      <Filter>Header - Qt Wrapper</Filter>
     </ClInclude>
     <ClInclude Include="qt_stream.h">
-      <Filter>Header</Filter>
+      <Filter>Header - Qt Wrapper</Filter>
     </ClInclude>
     <ClInclude Include="qt_web_tools.h">
-      <Filter>Header</Filter>
+      <Filter>Header - Qt Wrapper</Filter>
     </ClInclude>
     <ClInclude Include="my_common_tools.h">
-      <Filter>Header</Filter>
+      <Filter>Header - Tools</Filter>
+    </ClInclude>
+    <ClInclude Include="my_ranges_tools.h">
+      <Filter>Header - Tools</Filter>
+    </ClInclude>
+    <ClInclude Include="my_grid_view.h">
+      <Filter>Header - Tools</Filter>
+    </ClInclude>
+    <ClInclude Include="my_grid2d.h">
+      <Filter>Header - Tools</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
@@ -55,6 +58,12 @@
     </Filter>
     <Filter Include="Form">
       <UniqueIdentifier>{1502aa93-8f7f-4c8c-982f-dab3e9a45ea4}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Header - Tools">
+      <UniqueIdentifier>{f95eabcd-a34b-4616-819d-8af3cf3ef2cf}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Header - Qt Wrapper">
+      <UniqueIdentifier>{09a54148-7b10-4467-8dfa-0480299f724d}</UniqueIdentifier>
     </Filter>
   </ItemGroup>
   <ItemGroup>

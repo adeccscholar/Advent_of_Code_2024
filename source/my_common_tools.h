@@ -13,12 +13,19 @@
 #include <filesystem>
 #include <charconv>
 #include <system_error>
+#include <ranges>
 #include <format>
 #include <concepts>
 #include <source_location>
 
 namespace fs = std::filesystem;
 using namespace std::string_literals;
+
+
+template <typename>
+inline constexpr bool always_false = false;
+
+// -----------------------------------------------------------------------------
 
 template <typename ty>
 struct is_pair : std::false_type {};
@@ -138,9 +145,20 @@ inline std::string MyPostionTimeStamp(std::source_location const& loc = std::sou
 template <typename ty>
 concept my_integral_ty = std::is_integral_v<ty> && !std::is_same_v<ty, bool>;
 
-template <my_integral_ty ty>
-ty toInt(std::string_view str) {
-   static auto constexpr toString = [](std::string_view str) { return std::string{ str.data(), str.size() }; };
+template <typename ty>
+concept my_string_ty = std::is_same_v<ty, std::string> || std::is_same_v<ty, std::string_view>;
+
+template <my_integral_ty ty, my_string_ty str_ty>
+ty toInt(str_ty str) {
+   using used_type = std::remove_cv_t<std::remove_reference_t<decltype(str)>>;
+   static auto constexpr toString = [](str_ty str) { 
+      if constexpr (std::is_same_v<used_type, std::string>) return str;
+      else if constexpr (std::is_same_v<used_type, std::string_view>) {
+         return std::string { str.data(), str.size() };
+         }
+      else static_assert(always_false<used_type>, "unexpected type as parameter for method toInt");
+      };
+
    std::size_t pos{};
    if constexpr (std::is_same_v<ty, long long>) return stoll(toString(str), &pos);
    else if constexpr (std::is_same_v<ty, unsigned long long>) return std::stoull(toString(str), &pos);
@@ -160,11 +178,12 @@ ty toInt(std::string_view str) {
       }
    }
 
+/*
 template <my_integral_ty ty>
 ty toInt(std::string const& str) {
    return toInt<ty>(std::string_view{ str.data(), str.size() });
    }
-
+*/
 
 template <my_integral_ty ty>
 ty Difference(ty const& a, ty const& b) {
@@ -217,10 +236,17 @@ std::pair<ty, ty> parsePair(std::string_view const& para) {
       }
    }
 
+template <size_t SIZE>
+inline bool constexpr checkSpaceSeparatedIntegers(std::string const& text) {
+   static std::regex fullPattern("^(0|[1-9]\\d{0,"s + to_String(SIZE-1) + "})( (0|[1-9]\\d{0," + to_String(SIZE-1) + "}))*$"s);
+   return std::regex_match(text, fullPattern) ? true : false;
+}
+
+
 template <my_integral_ty ty>
-std::vector<ty> extractNumbers(std::string_view const& para) {
+std::vector<ty> extractNumbers(std::string_view para) {
    std::vector<ty> result;
-   std::regex numberRegex(R"(\d+)");
+   static std::regex numberRegex(R"(\d+)");
    std::string input = { para.begin(), para.end() };
    for (auto it = std::sregex_iterator(input.begin(), input.end(), numberRegex); it != std::sregex_iterator(); ++it) {
       result.emplace_back(toInt<ty>(it->str()));
@@ -231,14 +257,34 @@ std::vector<ty> extractNumbers(std::string_view const& para) {
 template <typename ty>
 std::string toString(ty input) { return { input.begin(), input.end() }; }
 
-inline bool checkCommaSeparatedIntegers(std::string const& text) {
-   static std::regex fullPattern(R"(^(0|[1-9]\d{0,2})(,(0|[1-9]\d{0,2}))*$)");
+template <typename ty>
+std::string_view toString_view(ty input) { return { input.begin(), input.end() }; }
+
+// -------------------------------------------------------------------------------
+template <typename str_ty> requires std::is_same_v<str_ty, std::string> || std::is_same_v<str_ty, std::string_view>
+inline std::optional<std::tuple<std::string_view, std::string_view>> splitString(str_ty const& text, char delimiter) {
+   if (size_t pos = text.find(delimiter); pos != str_ty::npos) [[likely]] {
+      return { { std::string_view(text).substr(0, pos), std::string_view(text).substr(pos + 1) } };
+      }
+   else return { };
+   }
+
+
+// -------------------------------------------------------------------------------
+template <char Sep = ','>
+inline bool checkSeparatedIntegers(std::string const& text) {
+   static const std::regex fullPattern("^(0|[1-9]\\d+)("s + Sep + "(0|[1-9]\\d+))*$"s);
    return std::regex_match(text, fullPattern) ? true : false;
    }
 
+template <char Sep = ','>
+inline bool checkSeparatedIntegers_view(std::string_view const& text) {
+   return checkCommaSeparatedIntegers<Sep>({ text.begin(), text.end() });
+   }
+
 template <my_integral_ty ty>
-std::vector<ty> parseCommaSeparatedIntegers(std::string const& text) {
-   static std::regex numberPattern(R"(0|[1-9]\d{0,2})"); 
+std::vector<ty> parseSeparatedIntegers(std::string const& text) {
+   static const std::regex numberPattern(R"(0|[1-9]\d+)");
    std::vector<ty> results;
    for(std::sregex_iterator iter(text.begin(), text.end(), numberPattern); iter != std::sregex_iterator(); ++iter) {
       results.emplace_back(toInt<ty>(iter->str())); 
@@ -246,6 +292,10 @@ std::vector<ty> parseCommaSeparatedIntegers(std::string const& text) {
    return results;
    }
 
+template <my_integral_ty ty>
+std::vector<ty> parseSeparatedIntegers_view(std::string_view const& text) {
+   return parseCommaSeparatedIntegers<ty>({ text.begin(), text.end() });
+   }
 
 inline bool checkSeparatedIntegersPairs(std::string const& text) {
    static std::regex fullPattern(R"(^(([1-9][0-9]{0,2})\|([1-9][0-9]{0,2}))$)");
@@ -259,4 +309,50 @@ std::tuple<ty, ty> parseSeparatedPairs(std::string const& text) {
    if (std::regex_match(text, match, fullPattern)) [[likely]]
       return { toInt<ty>(match[2].str()), toInt<ty>(match[3].str()) };
    else throw std::invalid_argument(std::format("unexpected input: ", text));;
+   }
+
+// ------------------------------------------------------------------------------------------
+
+// functions added with 7th day
+
+inline size_t constexpr bitCount(size_t val) { 
+   return val <= 1 ? 0 : static_cast<size_t>(std::log2(val - 1u) + 1u);
+   }
+
+// std::pow not constexpr (changed with C++26)
+inline size_t variantCount(size_t val) { 
+   return std::pow(2u, val);  
+   }
+
+inline std::vector<std::vector<uint16_t>> calculateBinaryRules(size_t cntOps) {
+   static auto constexpr operationCnt = [](size_t val) -> size_t { return val == 0 ? 0 : val - 1; };
+   std::vector<std::vector<uint16_t>> rules;
+   for (size_t varCnt = variantCount(cntOps); auto val : std::views::iota(0) | std::views::take(varCnt)) {
+      std::vector<uint16_t> results;
+      for (auto [bitPos, bitCnt] = std::make_pair(0u, bitCount(varCnt) - 1u); bitPos < bitCnt; ++bitPos) {
+         uint16_t bit = (val >> bitPos) & 1;
+         results.emplace_back(bit);
+         }
+      rules.emplace_back(std::move(results));
+      }
+   return rules;
+   }
+
+/*
+template <my_integral_ty ty>
+ty concatenateNumbers(ty first, ty second) {
+   return toInt<ty>(std::format("{}{}", first, second));
+}
+*/
+
+
+template <my_integral_ty ty>
+ty concatenateNumbers(ty first, ty second) {
+   return first * static_cast<ty>(std::pow<ty>(10, static_cast<ty>(std::log10(second)) + 1)) + second;
+   }
+
+
+template <my_integral_ty ty, typename... Args>  requires (sizeof...(Args) >= 1)
+ty concatenateNumbers(ty first, ty second, Args... args) {
+   return concatenateNumbers(concatenateNumbers<ty>(first, second), args...);
    }
