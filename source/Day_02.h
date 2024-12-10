@@ -1,11 +1,17 @@
 ﻿#pragma once
 
 // AOC 2024, 2nd day : Red-Nosed Reports
+// Project: Solutions for Advent of Code 2024
+// file with Advent of Code 2024, 2nd day : Red-Nosed Reports
+// copyright © adecc Systemhaus GmbH 2024, All rights reserved.
+// This project is released under the MIT License.
 
 #include "my_common_tools.h"
 
 #include <string>
+#include <utility>
 #include <vector>
+#include <stdexcept>
 #include <ranges>
 #include <print>
 

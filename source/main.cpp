@@ -1,3 +1,9 @@
+﻿// Project: Solutions for Advent of Code 2024
+// main function for the Qt Project
+// copyright © adecc Systemhaus GmbH 2024, All rights reserved.
+// This project is released under the MIT License.
+
+
 #include "MainWindow.h"
 #include <QtWidgets/QApplication>
 

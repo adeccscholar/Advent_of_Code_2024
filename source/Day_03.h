@@ -1,6 +1,10 @@
-#pragma once
+﻿#pragma once
 
-// AoC 2024, 3rd day : Mull It Over
+// Project: Solutions for Advent of Code 2024
+// file with Advent of Code 2024, 3rd day : Mull It Over
+// copyright © adecc Systemhaus GmbH 2024, All rights reserved.
+// This project is released under the MIT License.
+
 
 #include "my_common_tools.h"
 

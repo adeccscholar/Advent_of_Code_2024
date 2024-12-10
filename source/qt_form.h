@@ -1,4 +1,12 @@
-#pragma once
+﻿#pragma once
+
+// Project: Solutions for Advent of Code 2024
+// wrapper for qt widgets (Qt 6)
+// example to find and isolate basic functionality for different problems
+// 
+// copyright © adecc Systemhaus GmbH 2024, All rights reserved.
+// This project is released under the MIT License.
+
 
 #include "qt_stream.h"
 #include "qt_iteratoren.h"

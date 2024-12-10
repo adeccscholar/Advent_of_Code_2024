@@ -1,4 +1,9 @@
-#pragma once
+﻿#pragma once
+
+// Project: Solutions for Advent of Code 2024
+// definition of the main widget class (formular) for the Qt Project
+// copyright © adecc Systemhaus GmbH 2024, All rights reserved.
+// This project is released under the MIT License.
 
 #include <QtWidgets/QMainWindow>
 #include <QLabel>

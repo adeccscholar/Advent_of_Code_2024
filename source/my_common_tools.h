@@ -1,5 +1,13 @@
 ﻿#pragma once
 
+// Project: Solutions for Advent of Code 2024
+// common functions for the project
+// example to find and isolate basic functionality for different problems
+// 
+// copyright © adecc Systemhaus GmbH 2024, All rights reserved.
+// This project is released under the MIT License.
+
+
 #include <string>
 #include <stdexcept>
 #include <regex>

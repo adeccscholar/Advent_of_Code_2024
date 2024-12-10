@@ -1,10 +1,14 @@
 ﻿#pragma once
 
-// AOC 2024, 1st day : Historian Hysteria
+// Project: Solutions for Advent of Code 2024
+// file with Advent of Code 2024, 1st day : Historian Hysteria
+// copyright © adecc Systemhaus GmbH 2024, All rights reserved.
+// This project is released under the MIT License.
 
 #include "my_common_tools.h"
 
 #include <string>
+#include <utility>
 #include <vector>
 #include <ranges>
 #include <print>

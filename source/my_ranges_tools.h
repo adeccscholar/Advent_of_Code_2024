@@ -1,4 +1,14 @@
-#pragma once
+﻿#pragma once
+
+// Project: Solutions for Advent of Code 2024
+// own help function for ranges
+// example to find and isolate basic functionality for different problems
+// this classes are part of the adecc Scholars repositories and separated for this project
+// 
+// copyright © adecc Systemhaus GmbH 2024, All rights reserved.
+// This project is released under the MIT License.
+
+
 
 #include <ranges>
 

@@ -1,4 +1,11 @@
-#pragma once
+﻿#pragma once
+
+// Project: Solutions for Advent of Code 2024
+// file with 2 dimensional grid, matching coordinates and supporting pathways
+// example to demonstrate the implementation of iterators, and use of mapping to acces data
+// copyright © adecc Systemhaus GmbH 2024, All rights reserved.
+// This project is released under the MIT License.
+
 
 #include <string>
 #include <vector>

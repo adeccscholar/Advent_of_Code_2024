@@ -57,6 +57,27 @@
     <ClInclude Include="Day_04.h">
       <Filter>Header - Days</Filter>
     </ClInclude>
+    <ClInclude Include="Day_05.h">
+      <Filter>Header - Days</Filter>
+    </ClInclude>
+    <ClInclude Include="Day_06.h">
+      <Filter>Header - Days</Filter>
+    </ClInclude>
+    <ClInclude Include="Day_07.h">
+      <Filter>Header - Days</Filter>
+    </ClInclude>
+    <ClInclude Include="my_iterators.h">
+      <Filter>Header - Tools</Filter>
+    </ClInclude>
+    <ClInclude Include="Day_08.h">
+      <Filter>Header - Days</Filter>
+    </ClInclude>
+    <ClInclude Include="Day_09.h">
+      <Filter>Header - Days</Filter>
+    </ClInclude>
+    <ClInclude Include="Day_10.h">
+      <Filter>Header - Days</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <Filter Include="Header">

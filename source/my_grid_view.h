@@ -1,5 +1,14 @@
 #pragma once
 
+// Project: Solutions for Advent of Code 2024
+// 2 dimensional grid with std::mdspan with iterator and pathways, class for coordinates
+// example to find and isolate basic functionality for different problems
+// 
+// copyright © adecc Systemhaus GmbH 2024, All rights reserved.
+// This project is released under the MIT License.
+
+// problem with differences
+
 #include <string>
 #include <vector>
 #include <array>
@@ -12,8 +21,6 @@
 #include <mdspan>
 
 using namespace std::string_literals;
-
-// todo copying of grid and pathway is still a problem in assignment 
 
 namespace own {
 

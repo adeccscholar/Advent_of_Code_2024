@@ -1,5 +1,11 @@
 ﻿#pragma once
 
+// Project: Solutions for Advent of Code 2024
+// header file for process, control data for process and common processes functions
+// copyright © adecc Systemhaus GmbH 2024, All rights reserved.
+// This project is released under the MIT License.
+
+
 #include "qt_form.h"
 #include <iostream>
 #include <map>

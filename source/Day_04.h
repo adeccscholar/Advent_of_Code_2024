@@ -1,6 +1,9 @@
 #pragma once
 
-// Advent of Code 2024, 4th day : Ceres Search 
+// Project: Solutions for Advent of Code 2024
+// file with Advent of Code 2024, 4th day : Ceres Search 
+// copyright © adecc Systemhaus GmbH 2024, All rights reserved.
+// This project is released under the MIT License.
 
 #include "my_common_tools.h"
 #include "my_grid2d.h"

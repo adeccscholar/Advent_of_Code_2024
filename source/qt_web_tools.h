@@ -1,4 +1,12 @@
-#pragma once
+﻿#pragma once
+
+// Project: Solutions for Advent of Code 2024
+// call web pages (with standard browser or with the Qt functionality)
+// example to find and isolate basic functionality for different problems
+// 
+// copyright © adecc Systemhaus GmbH 2024, All rights reserved.
+// This project is released under the MIT License.
+
 
 #include <QCoreApplication>
 #include <QClipboard>
