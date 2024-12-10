@@ -54,6 +54,9 @@
     <ClInclude Include="Day_03.h">
       <Filter>Header - Days</Filter>
     </ClInclude>
+    <ClInclude Include="Day_04.h">
+      <Filter>Header - Days</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <Filter Include="Header">
