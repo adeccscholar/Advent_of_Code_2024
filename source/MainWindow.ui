@@ -6,8 +6,8 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>1239</width>
-    <height>645</height>
+    <width>1259</width>
+    <height>668</height>
    </rect>
   </property>
   <property name="sizePolicy">
@@ -148,6 +148,20 @@
               </widget>
              </item>
              <item>
+              <widget class="QPushButton" name="btnPasteData">
+               <property name="text">
+                <string>btnPasteData</string>
+               </property>
+              </widget>
+             </item>
+             <item>
+              <widget class="Line" name="line_2">
+               <property name="orientation">
+                <enum>Qt::Orientation::Horizontal</enum>
+               </property>
+              </widget>
+             </item>
+             <item>
               <widget class="QPushButton" name="btnOldURL">
                <property name="text">
                 <string>btnOldURL</string>
@@ -158,13 +172,6 @@
               <widget class="QPushButton" name="btnInputData">
                <property name="text">
                 <string>btnInputData</string>
-               </property>
-              </widget>
-             </item>
-             <item>
-              <widget class="QPushButton" name="btnPasteData">
-               <property name="text">
-                <string>btnPasteData</string>
                </property>
               </widget>
              </item>
@@ -289,7 +296,7 @@
     <rect>
      <x>0</x>
      <y>0</y>
-     <width>1239</width>
+     <width>1259</width>
      <height>33</height>
     </rect>
    </property>
@@ -305,6 +312,22 @@
   <widget class="QStatusBar" name="statusBar"/>
  </widget>
  <layoutdefault spacing="6" margin="11"/>
+ <tabstops>
+  <tabstop>btnInfo</tabstop>
+  <tabstop>cbxOldRiddles</tabstop>
+  <tabstop>chkTestData</tabstop>
+  <tabstop>btnOldRiddles</tabstop>
+  <tabstop>btnPasteData</tabstop>
+  <tabstop>btnOldURL</tabstop>
+  <tabstop>btnInputData</tabstop>
+  <tabstop>edtResult_1</tabstop>
+  <tabstop>btnCopyResult1</tabstop>
+  <tabstop>edtResult_2</tabstop>
+  <tabstop>btnCopyResult2</tabstop>
+  <tabstop>btnTest</tabstop>
+  <tabstop>memInput</tabstop>
+  <tabstop>memOutput</tabstop>
+ </tabstops>
  <resources>
   <include location="MainWindow.qrc"/>
  </resources>

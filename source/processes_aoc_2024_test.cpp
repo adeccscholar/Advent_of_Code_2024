@@ -2,7 +2,7 @@
 
 #include "qt_form.h"
 #include "my_common_tools.h"
-#include "my_grid_view.h"
+#include "my_grid2d.h"
 
 #include <algorithm>
 #include <cmath>
@@ -55,9 +55,5 @@ void combine(const std::vector<int>& values, std::vector<int>& current, size_t s
 
 
 void TAOC2024Processes::TestCase(TMyForm&& frm) {
-   std::vector<int> values = { 1, 2, 3, 4 , 5, 6 };
-   size_t k = 2; // Größe der Kombination
 
-   std::vector<int> current;
-   combine(values, current, 0, k);
    }

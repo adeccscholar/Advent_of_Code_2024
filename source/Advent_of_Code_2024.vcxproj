@@ -123,6 +123,9 @@
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Header.h" />
+    <ClInclude Include="Day_01.h" />
+    <ClInclude Include="Day_02.h" />
+    <ClInclude Include="Day_03.h" />
     <ClInclude Include="my_grid2d.h" />
     <ClInclude Include="my_grid_view.h" />
     <ClInclude Include="processes_aoc2024.h" />

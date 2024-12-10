@@ -254,6 +254,18 @@ std::vector<ty> extractNumbers(std::string_view para) {
    return result;
    }
 
+template <my_integral_ty ty>
+std::vector<ty> extractNumbers_with(std::string_view para, ty start) {
+   std::vector<ty> result;
+   result.emplace_back(start);
+   static std::regex numberRegex(R"(\d+)");
+   std::string input = { para.begin(), para.end() };
+   for (auto it = std::sregex_iterator(input.begin(), input.end(), numberRegex); it != std::sregex_iterator(); ++it) {
+      result.emplace_back(toInt<ty>(it->str()));
+      }
+   return result;
+   }
+
 template <typename ty>
 std::string toString(ty input) { return { input.begin(), input.end() }; }
 
@@ -329,7 +341,8 @@ inline std::vector<std::vector<uint16_t>> calculateBinaryRules(size_t cntOps) {
    std::vector<std::vector<uint16_t>> rules;
    for (size_t varCnt = variantCount(cntOps); auto val : std::views::iota(0) | std::views::take(varCnt)) {
       std::vector<uint16_t> results;
-      for (auto [bitPos, bitCnt] = std::make_pair(0u, bitCount(varCnt) - 1u); bitPos < bitCnt; ++bitPos) {
+      //for (auto [bitPos, bitCnt] = std::make_pair(0u, bitCount(varCnt) - 1u); bitPos < bitCnt; ++bitPos) {
+      for (auto [bitPos, bitCnt] = std::make_pair(0u, bitCount(varCnt)); bitPos < bitCnt; ++bitPos) {
          uint16_t bit = (val >> bitPos) & 1;
          results.emplace_back(bit);
          }
@@ -347,12 +360,19 @@ ty concatenateNumbers(ty first, ty second) {
 
 
 template <my_integral_ty ty>
-ty concatenateNumbers(ty first, ty second) {
-   return first * static_cast<ty>(std::pow<ty>(10, static_cast<ty>(std::log10(second)) + 1)) + second;
+ty concatenateNumbers(ty first_val, ty second_val) {
+   return first_val * static_cast<ty>(std::pow<ty>(10, static_cast<ty>(std::log10(second_val)) + 1)) + second_val;
    }
 
 
 template <my_integral_ty ty, typename... Args>  requires (sizeof...(Args) >= 1)
-ty concatenateNumbers(ty first, ty second, Args... args) {
-   return concatenateNumbers(concatenateNumbers<ty>(first, second), args...);
+ty concatenateNumbers(ty first_val, ty second_val, Args... args) {
+   return concatenateNumbers(concatenateNumbers<ty>(first_val, second_val), args...);
    }
+
+template <my_integral_ty ty>
+struct concatenateNumbers_ty {
+   ty operator()(ty const& first_val, ty const& second_val) const {
+      return concatenateNumbers(first_val, second_val);
+      }
+};

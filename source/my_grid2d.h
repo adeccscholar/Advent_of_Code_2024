@@ -46,12 +46,21 @@ namespace own {
             }
 
          coord_2D_type& operator = (std::tuple<size_t, size_t> const& other) {
-            coords = std::move(other);
+            coords = other;
             return *this;
             }
 
+         auto operator <=> (const coord_2D_type& rhs) const = default;
+
          std::optional<coord_2D_type> operator + (coord_2D_distance_ty const& other) const {
             auto val1 = static_cast<int64_t>(row()) + std::get<0>(other);
+            auto val2 = static_cast<int64_t>(col()) + std::get<1>(other);
+            if (val1 < 0 || val2 < 0) return { };
+            else return { { static_cast<size_t>(val1), static_cast<size_t>(val2) } };
+            }
+
+         std::optional<coord_2D_type> operator - (coord_2D_distance_ty const& other) const {
+            auto val1 = static_cast<int64_t>(row()) - std::get<0>(other);
             auto val2 = static_cast<int64_t>(col()) - std::get<1>(other);
             if (val1 < 0 || val2 < 0) return { };
             else return { { static_cast<size_t>(val1), static_cast<size_t>(val2) } };
@@ -69,7 +78,7 @@ namespace own {
          size_t row() const { return std::get<0>(coords);  }
          size_t col() const { return std::get<1>(coords); }
 
-         std::tuple<size_t, size_t>& get_data() { return coords; }
+         std::tuple<size_t, size_t>&       get_data() { return coords; }
          std::tuple<size_t, size_t> const& get_data() const { return coords; }
       };
 
@@ -77,7 +86,8 @@ namespace own {
       class grid_2D {
       public:
          using mdspan2d_t = std::mdspan<ty, std::dextents<size_t, 2>>;
-      
+         using iterator = typename std::vector<ty>::iterator;
+         using const_iterator = typename std::vector<ty>::const_iterator;
       private:
          std::vector<ty> raw_data;
          mdspan2d_t      data_span;
@@ -182,7 +192,15 @@ namespace own {
                }
             return *this;
             }
-         
+
+         bool Valid(size_t row, size_t col) const {
+            return (row < rows_val && col < cols_val ? true : false);
+            }
+
+         bool Valid(coord_2D_type const& indices) const {
+            return Valid(indices.row(), indices.col());
+            }
+
          void CheckBounds(size_t row, size_t col) const {
             if (row >= rows_val || col >= cols_val) {
                throw std::out_of_range("index for grid2d out of bounds");
@@ -211,6 +229,13 @@ namespace own {
             return data_span[row, col];
             }
 
+         coord_2D_type GetCoordinates(const_iterator it) const {
+            if (auto pos = std::distance(cbegin(), it); pos >= raw_data.size()) {
+               throw std::out_of_range("position in grid_2D is out of bounds");
+               }
+            else [[likely]] return { pos / cols_val, pos % cols_val };
+            }
+
          ty& operator()(size_t row, size_t col)             { return data_span(row, col);  }
          ty const& operator()(size_t row, size_t col) const { return data_span(row, col);  }
          ty& operator()(coord_2D_type pos)                  { return data_span(std::get<0>(pos), std::get<1>(pos)); }
@@ -223,11 +248,16 @@ namespace own {
             return { pos / cols_val, pos % cols_val };
             }
          
+         
+         void print(std::ostream& out) requires std::is_same_v<ty, char> {
+            for (size_t i = 0; i < rows(); ++i) {
+               for (size_t j = 0; j < cols(); ++j) std::print(out, "{}", (*this)[i, j]);
+               std::println(out, "");
+               }
+            }
+
          size_t rows() const { return rows_val; }
          size_t cols() const { return cols_val; }
-
-         using iterator       = typename std::vector<ty>::iterator;
-         using const_iterator = typename std::vector<ty>::const_iterator;
 
          iterator       begin()        { return raw_data.begin(); }
          iterator       end()          { return raw_data.end(); }
@@ -602,13 +632,13 @@ namespace std {
       };
 
    template<size_t N>
-   decltype(auto) get(own::grid::coord_2D_type const& obj) {
+   size_t const& get(own::grid::coord_2D_type const& obj) {
       if constexpr (N == 0) return std::get<0>(obj.get_data());
       else if constexpr (N == 1) return std::get<1>(obj.get_data());
       }
-
+   
    template<size_t N>
-   decltype(auto) get(own::grid::coord_2D_type& obj) {
+   size_t& get(own::grid::coord_2D_type& obj) {
       if constexpr (N == 0) return std::get<0>(obj.get_data());
       else if constexpr (N == 1) return std::get<1>(obj.get_data());
       }

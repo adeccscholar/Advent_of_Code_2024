@@ -45,6 +45,15 @@
     <ClInclude Include="my_grid2d.h">
       <Filter>Header - Tools</Filter>
     </ClInclude>
+    <ClInclude Include="Day_01.h">
+      <Filter>Header - Days</Filter>
+    </ClInclude>
+    <ClInclude Include="Day_02.h">
+      <Filter>Header - Days</Filter>
+    </ClInclude>
+    <ClInclude Include="Day_03.h">
+      <Filter>Header - Days</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <Filter Include="Header">
@@ -64,6 +73,9 @@
     </Filter>
     <Filter Include="Header - Qt Wrapper">
       <UniqueIdentifier>{09a54148-7b10-4467-8dfa-0480299f724d}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Header - Days">
+      <UniqueIdentifier>{cd97cc7f-09a7-4e11-8896-b5d4f3d4a799}</UniqueIdentifier>
     </Filter>
   </ItemGroup>
   <ItemGroup>

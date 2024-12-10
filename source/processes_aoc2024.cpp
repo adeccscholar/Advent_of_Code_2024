@@ -7,6 +7,10 @@
 //#include "my_grid_view.h"
 #include "my_grid2d.h"
 
+#include "Day_01.h"
+#include "Day_02.h"
+#include "Day_03.h"
+
 #include <iostream>
 #include <string_view>
 #include <vector>
@@ -22,218 +26,13 @@
 
 using namespace std::string_literals;
 
-template <std::ranges::input_range range_ty>
-std::pair<std::string, std::string> RiddleDay1(range_ty const& values) {
-   auto result = values | std::ranges::views::filter([](auto const& p) { return p.size() > 0; })
-                        | std::ranges::views::transform(parsePair<size_t>)
-                        | std::ranges::to<std::vector>();
-
-   auto first_vals = result | own::views::first | std::ranges::to<std::vector>();
-   auto second_vals = result | own::views::second | std::ranges::to<std::vector>();
-
-   std::ranges::sort(first_vals);
-   std::ranges::sort(second_vals);
-
-   // total distance
-   auto result_1 = std::ranges::fold_left(std::ranges::views::zip(first_vals, second_vals), size_t { 0 },
-         [](size_t acc, auto const& pair) {
-            auto const& [a, b] = pair;
-            return acc + Difference(a, b);
-         });
-   std::println(std::cout, "the result for the 1st part is {}", result_1);  // 1889772
-
-   // similarity score
-   auto result_2 = std::ranges::fold_left(first_vals, size_t { 0 },
-         [&second_vals](size_t acc, auto const& val) {
-            return acc + val * std::ranges::count(second_vals, val);
-         });
-   std::println(std::cout, "the result for the 2nd part is {}", result_2);   // 23228917
-   std::println(std::clog, "1st day finished");
-   return { to_String(result_1), to_String(result_2) };
-   }
-
-
-template <std::ranges::input_range range_ty>
-std::pair<std::string, std::string> RiddleDay2(range_ty const& values) {
-
-      size_t result_1 = 0, result_2 = 0;
-      for (auto const& data : values) {
-         std::string input = { data.begin(), data.end() };
-         if (!checkSpaceSeparatedIntegers<3>(input)) {
-            throw std::invalid_argument("unexpected input \""s + input + "\" in input for Riddle2"s);
-            }
-            
-         auto row = extractNumbers<size_t>(data);
-         // std::print(std::cout, "{:>3} ->", row);
-         std::vector<int> differences;
-         for (auto const& diffs : row | std::views::slide(2)) {
-            std::vector<size_t> slidevals;
-            for (auto elem : diffs) {
-               slidevals.emplace_back(elem);
-            }
-            differences.emplace_back(static_cast<int>(static_cast<long long>(slidevals[1]) - static_cast<long long>(slidevals[0])));
-         }
-
-         // std::print(std::cout, "   {:>3}\t", differences);
-
-         bool allIncreasing = std::ranges::all_of(differences, [](int diff) { return diff > 0 && diff <= 3; });
-         bool allDecreasing = std::ranges::all_of(differences, [](int diff) { return diff < 0 && diff >= -3; });
-         bool allChecks = allIncreasing || allDecreasing;
-
-         if (allChecks) {
-            result_1 += 1;
-            result_2 += 1;
-            // std::println(std::cout, "korrekt");
-         }
-         else [[likely]] {
-            for (size_t i = 0; i < row.size(); ++i) {
-               auto subrow = row | std::views::enumerate | std::views::filter([i](auto const& p) {
-                  auto const& [idx, val] = p;
-                  return idx != i;
-                     })
-                  | std::views::transform([](auto const& p) {
-                  auto const& [idx, val] = p;
-                  return val;
-                     })
-                  | std::ranges::to<std::vector>();
-
-               std::vector<int> subdiffs;
-               for (auto const& diffs : subrow | std::views::slide(2)) {
-                  std::vector<size_t> slidevals;
-                  for (auto elem : diffs) {
-                     slidevals.emplace_back(elem);
-                     }
-                  subdiffs.emplace_back(static_cast<int>(static_cast<long long>(slidevals[1]) - static_cast<long long>(slidevals[0])));
-                  }
-
-               bool allIncreasing = std::ranges::all_of(subdiffs, [](int diff) { return diff > 0 && diff <= 3; });
-               bool allDecreasing = std::ranges::all_of(subdiffs, [](int diff) { return diff < 0 && diff >= -3; });
-               bool allChecks = allIncreasing || allDecreasing;
-               if (allChecks) {
-                  result_2 += 1;
-                  break;
-                  }
-               }
-            }
-            /*
-               auto cntIncreasing = std::ranges::count_if(differences, [](int diff) { return diff >= 0; });
-               auto cntDecreasing = std::ranges::count_if(differences, [](int diff) { return diff <= 0; });
-
-               if(cntIncreasing > cntDecreasing) {
-                  if(auto it = std::ranges::find_if(differences, [](int diff) {  return diff <= 0 || diff > 3; }); it != differences.end()) {
-                     if (auto next = it + 1; it != differences.begin() && next != differences.end()) *next += *it;
-                     differences.erase(it);
-                     }
-                  allIncreasing = std::ranges::all_of(differences, [](int diff) { return diff > 0 && diff <= 3; });
-                  allDecreasing = false;
-                  }
-               else {
-                  if (auto it = std::ranges::find_if(differences, [](int diff) {  return diff >= 0 || diff < -3; }); it != differences.end()) {
-                     if (auto next = it + 1; it != differences.begin() && next != differences.end()) *next += *it;
-                     differences.erase(it);
-                     }
-                  allIncreasing = false;
-                  allDecreasing = std::ranges::all_of(differences, [](int diff) { return diff < 0 && diff >= -3; });
-                  }
-               result_2 += allIncreasing || allDecreasing ? 1 : 0;
-               std::println(std::cout, "{:3}\t{}", differences, (allIncreasing || allDecreasing ? "korrigiert" : "ungültig"));
-               }
-               */
-      }
-
-      std::println(std::cout, "the result for the 1st part is {}", result_1);
-      std::println(std::cout, "the result for the 2nd part is {}", result_2);
-      return { to_String(result_1), to_String(result_2) };
-   }
-
-template <std::ranges::input_range range_ty>
-std::pair<std::string, std::string> RiddleDay3(range_ty const& values) {
-   static std::regex pattern1(R"(mul\(([1-9][0-9]{0,2}),([1-9][0-9]{0,2})\))");
-   std::vector<std::pair<size_t, size_t>> results;
-   for (auto const& data : values) {
-      std::string input = { data.begin(), data.end() };
-      auto begin = std::sregex_iterator(input.begin(), input.end(), pattern1);
-      auto end = std::sregex_iterator();
-
-      for (std::sregex_iterator it = begin; it != end; ++it) {
-         std::smatch match = *it;
-         results.emplace_back(toInt<size_t>(match[1].str()), toInt<size_t>(match[2].str()));
-         }
-      }
-
-   auto result_1 = std::accumulate(results.begin(), results.end(), size_t { 0 }, 
-                                   [](size_t acc, std::pair<size_t, size_t>& p) {
-                                       return acc + (p.first * p.second);
-                                       }
-                                   );
-   //*
-   results.clear();
-   static std::regex pattern2(R"((mul\(([1-9][0-9]{0,2}),([1-9][0-9]{0,2})\))|(do\(\))|(don't\(\)))");
-   for (bool boActive = true; auto const& data : values) {
-      std::string input = { data.begin(), data.end() };
-      auto begin = std::sregex_iterator(input.begin(), input.end(), pattern2);
-      auto end = std::sregex_iterator();
-
-      for (std::sregex_iterator it = begin; it != end; ++it) {
-         std::smatch const& match = *it;
-
-
-         if (match[4].matched) boActive = true;
-         else if (match[5].matched) boActive = false;
-         else if (match[1].matched && boActive) results.emplace_back(toInt<size_t>(match[2].str()), toInt<size_t>(match[3].str()));
-         }
-      }
-   //*/
-   /*
-   bool boActive = true;
-   static std::string strStart = "do()"s;
-   static std::string strStop  = "don't()"s;
-
-   for (results.clear(); auto const& data : values) {
-      std::string input = { data.begin(), data.end() };
-
-      for (size_t pos = (boActive ? 0u : input.find(strStart) + strStart.size()); pos != std::string::npos ; ) {
-         size_t endpos = input.find(strStop, pos);
-         auto begin = std::sregex_iterator(input.begin() + pos, (endpos == std::string::npos ? input.end() : input.begin() + endpos), pattern1);
-         auto end   = std::sregex_iterator();
-         boActive = true;
-         for (std::sregex_iterator it = begin; it != end; ++it) {
-            std::smatch match = *it;
-            results.emplace_back(toInt<size_t>(match[1].str()), toInt<size_t>(match[2].str()));
-            }
-
-         if (endpos == std::string::npos) {
-            pos = endpos;
-            continue;
-            }
-         else { 
-            pos = input.find(strStart, endpos + strStop.size());
-            if(pos != std::string::npos) pos += strStart.size();
-            else boActive = false;
-            }
-         }
-      }
-   */
-
-   auto result_2 = std::accumulate(results.begin(), results.end(), size_t{ 0 },
-                                       [](size_t acc, std::pair<size_t, size_t>& p) {
-                                            return acc + (p.first * p.second);
-                                            }
-                                  );
-
-
-   std::println(std::cout, "the result for the 1st part is {}", result_1);
-   std::println(std::cout, "the result for the 2nd part is {}", result_2);
-   return { to_String(result_1), to_String(result_2) };
-   }
-
 //template <std::ranges::input_range range_ty>
 std::pair<std::string, std::string> RiddleDay4(std::string&& text) { //TMyForm& frm) { // range_ty const& values
    std::atomic<size_t> result_1 = 0, result_2 = 0;
 
    //auto text = frm.GetText("memInput"s);
    auto rows = std::ranges::count(text, '\n');
-   auto cols = text.size() / std::ranges::count(text, '\n') - 1;
+   auto cols = text.size() / rows - 1;
    text.erase(std::ranges::remove(text, '\n').begin(), text.end());
 
    own::grid::grid_2D<char> vault(rows, cols);
@@ -347,6 +146,59 @@ enum class EDirections : char {
   };
 
 
+bool is_rectangle(std::array<own::grid::coord_2D_type, 4> const& points) {
+   std::array<size_t, 4> rows, cols;
+   for (size_t i = 0; i < 4; ++i) {
+      //std::tie(rows[i], cols[i]) = points[i];
+      rows[i] = std::get<0>(points[i]);
+      cols[i] = std::get<1>(points[i]);
+   }
+
+   std::ranges::sort(rows);
+   std::ranges::sort(cols);
+
+   auto last_row = std::unique(rows.begin(), rows.end());
+   auto last_col = std::unique(cols.begin(), cols.end());
+
+   size_t unique_rows = std::distance(rows.begin(), last_row);
+   size_t unique_cols = std::distance(cols.begin(), last_col);
+
+   return unique_rows == 2 && unique_cols == 2;
+}
+
+template <typename ty, size_t SIZE>
+bool next_combination(std::array<ty, SIZE>& indices, size_t n) {
+   size_t k = SIZE;
+   for (size_t i = k; i-- > 0;) {
+      if (indices[i] != i + n - k) {
+         ++indices[i];
+         for (size_t j = i + 1; j < k; ++j) {
+            indices[j] = indices[j - 1] + 1;
+            }
+         return true;
+         }
+      }
+   return false;
+   }
+
+template <typename ty, size_t SIZE>
+std::vector<std::array<ty, SIZE>> combination(std::span<ty> values) {
+   std::vector<std::array<ty, SIZE>> result;
+   if (values.size() < SIZE) return result;
+
+   std::array<size_t, SIZE> indices;
+   std::iota(indices.begin(), indices.end(), 0);
+
+   do {
+      std::array<ty, SIZE> combination;
+      for (size_t i = 0; i < SIZE; ++i) combination[i] = values[indices[i]];
+      result.emplace_back(combination);
+      } 
+   while (next_combination<size_t, SIZE>(indices, values.size()));
+   return result;
+   }
+
+
 //template <std::ranges::input_range range_ty>
 std::pair<std::string, std::string> RiddleDay6(std::string&& text) { // range_ty const& values
    const auto rows = std::ranges::count(text, '\n');
@@ -369,13 +221,6 @@ std::pair<std::string, std::string> RiddleDay6(std::string&& text) { // range_ty
       return rules[dir];
       };
 
-   auto print_grid = [&grid]() {
-      for (size_t i = 0; i < grid.rows(); ++i) {
-         for (size_t j = 0; j < grid.cols(); ++j) std::print(std::cout, "{}", grid[i, j]);
-         std::println(std::cout, "");
-         }
-      };
-
    using move_ret_type = std::tuple<size_t, size_t, bool>;
    std::map<EDirections, std::function<move_ret_type(size_t row, size_t col)>> moves_func = {
       { EDirections::upward, [&grid, &vertical, &path](size_t row, size_t col) -> move_ret_type {
@@ -384,7 +229,6 @@ std::pair<std::string, std::string> RiddleDay6(std::string&& text) { // range_ty
               if (auto it = std::find(start, view.rend(), '#'); it != view.rend()) {
                  for (auto step = start; step < it; ++step) { *step = 'O';  };
                  auto const& [new_row, new_col] = (it.base() - 1).get_coords();  // base the nearest Element, current is protected
-                 //std::println(std::cout, "new: {} / {} up : {}", new_row, new_col, *it);
                  return { new_row + 1, new_col, true };
                  }
               else {
@@ -398,7 +242,6 @@ std::pair<std::string, std::string> RiddleDay6(std::string&& text) { // range_ty
               if (auto it = std::find(start, view.end(), '#'); it != view.end()) {
                  for (auto step = start; step < it; ++step) { *step = 'O'; };
                  auto const& [new_row, new_col] = it.get_coords();  
-                 //std::println(std::cout, "new: {} / {} right : {}", new_row, new_col, *it);
                  return { new_row, new_col - 1, true };
                  }
               else {
@@ -412,7 +255,6 @@ std::pair<std::string, std::string> RiddleDay6(std::string&& text) { // range_ty
               if (auto it = std::find(start, view.end(), '#'); it != view.end()) {
                  for (auto step = start; step < it; ++step) { *step = 'O'; };
                  auto const& [new_row, new_col] = it.get_coords();  
-                 //std::println(std::cout, "new: {} / {} down : {}", new_row, new_col, *it);
                  return { new_row - 1, new_col, true };
                  } 
               else {
@@ -426,7 +268,6 @@ std::pair<std::string, std::string> RiddleDay6(std::string&& text) { // range_ty
               if (auto it = std::find(start, view.rend(), '#'); it != view.rend()) {
                  for (auto step = start; step < it; ++step) { *step = 'O'; };
                  auto const& [new_row, new_col] = (it.base() - 1).get_coords();  // base the nearest Element, current is protected
-                 //std::println(std::cout, "new: {} / {} left : {}", new_row, new_col, *it);
                  return { new_row, new_col + 1, true };
                  }
               else {
@@ -440,16 +281,25 @@ std::pair<std::string, std::string> RiddleDay6(std::string&& text) { // range_ty
 
    if(auto pos = std::find(grid.begin(), grid.end(), '^'); pos != grid.end()) {
       auto const& [c_row, c_col] = grid(std::distance(grid.begin(), pos));
-      *pos = 'O';
+      //*pos = 'O';
       EDirections move = EDirections::upward;
-
-      for(auto [row_, col_, ok_] = moves_func[move](c_row, c_col); ok_; std::tie(row_, col_, ok_) = moves_func[move](row_, col_)) {
-         //std::println(std::cout, "next: {} / {} upward", row_, col_);
+      path.emplace_back(own::grid::coord_2D_type{ c_row, c_col });
+      auto [row_, col_, ok_] = moves_func[move](c_row, c_col);
+      for(; ok_; std::tie(row_, col_, ok_) = moves_func[move](row_, col_)) {
+         path.emplace_back(own::grid::coord_2D_type{ row_, col_ });
          move = turn_right(move);
          }
+      path.emplace_back(own::grid::coord_2D_type{ row_, col_ });
 
-      print_grid();
+      auto res2 = combination<own::grid::coord_2D_type, 4>(path)
+                      | std::views::filter([](auto const& v) { return is_rectangle(v); })
+                      | std::ranges::to<std::vector>();
+      for(auto const& val : res2) 
+         std::apply([](auto&&... args) { return std::println(std::cout, "{} {} {} {}", args...); }, val);
+      //grid.print(std::cout);
       }
+
+
 
    size_t result_1 = 0, result_2 = 0;
    result_1 = std::count(grid.begin(), grid.end(), 'O');
@@ -457,35 +307,24 @@ std::pair<std::string, std::string> RiddleDay6(std::string&& text) { // range_ty
    return { to_String(result_1), to_String(result_2) };
    }
 
+
+template <my_integral_ty ty, typename func_ty>
+bool recursion_func_1(std::span<ty> values, ty res, func_ty&& func, ty acc) {
+   return values.empty() ? acc == res :
+             recursion_func_1<ty>(values.subspan(1), res, std::plus<ty>{}, func(acc, values.front())) ? true :
+             recursion_func_1<ty>(values.subspan(1), res, std::multiplies<ty>{}, func(acc, values.front()));
+   }
+
+template <my_integral_ty ty, typename func_ty>
+bool recursion_func_2(std::span<ty> values, ty res, func_ty&& func, ty acc) {
+   return values.empty() ? acc == res :
+      recursion_func_2<ty>(values.subspan(1), res, std::plus<ty>{}, func(acc, values.front())) ? true :
+      recursion_func_2<ty>(values.subspan(1), res, std::multiplies<ty>{}, func(acc, values.front()))? true :
+      recursion_func_2<ty>(values.subspan(1), res, concatenateNumbers_ty<ty>{}, func(acc, values.front()));
+   }
+
 template <std::ranges::input_range range_ty>
 std::pair<std::string, std::string> RiddleDay7(range_ty const& values) {
-
-   auto result_for = [](auto begin, auto end, std::vector<uint16_t> const& parts) -> size_t {
-      return std::ranges::fold_left(std::views::zip(std::ranges::subrange(begin, end) | std::views::drop(1), std::views::iota(0)), *begin,
-                                   [&parts](size_t acc, auto const& val) {
-                                      switch (parts[std::get<1>(val)]) {
-                                         case 0: return acc + std::get<0>(val);
-                                         case 1: return acc * std::get<0>(val);
-                                         default: throw std::invalid_argument("unexpected rule");
-                                         }                                         
-                                      });
-      };
-
-   auto result_for_corr = [](auto begin, auto end, std::vector<uint16_t> const& parts, const size_t offset) -> size_t {
-      auto data = std::views::zip(std::ranges::subrange(begin + 1, end), std::views::iota(0));
-      return std::ranges::fold_left(data, *begin, [&parts, offset](size_t acc, auto const& val) {
-                                      if(std::get<1>(val) == offset) return acc = concatenateNumbers<size_t>(acc, std::get<0>(val));
-                                      else [[likely]] {
-                                         switch (parts[std::get<1>(val)]) {
-                                            case 0: return acc + std::get<0>(val);
-                                            case 1: return acc * std::get<0>(val);
-                                            default: throw std::invalid_argument("unexpected rule");
-                                            }
-                                         }
-                                      });
-      };
-
-
    size_t result_1 = 0, result_2 = 0;
 
    auto tasks = values | std::views::transform([](std::string_view const& p) { return splitString(p, ':'); })
@@ -498,61 +337,63 @@ std::pair<std::string, std::string> RiddleDay7(range_ty const& values) {
                        | std::ranges::to<std::vector>();
 
 
-   auto max_element = std::ranges::max(tasks, {}, [](std::tuple<size_t, std::vector<size_t>> const& task) {
-                                                             return std::get<0>(task);
-                                                             });
-
-   auto max_size = std::ranges::max(tasks, {}, [](std::tuple<size_t, std::vector<size_t>> const& task) {
-                                                             return std::get<1>(task).size();  
-                                                             });
-
-   // std::println(std::cout, "{} | {} : {}", tasks.size(), std::get<0>(max_element), std::get<1>(max_size));
-
-   size_t max_count = std::get<1>(max_size).size();
-   auto rules = calculateBinaryRules(max_count + 1);
-
-   for (auto const& [result, input] : tasks) {
-      size_t rules_cnt = variantCount(input.size() - 1);
-      auto bits_cnt    = bitCount(rules_cnt);      
-      bool boCorrect   = false;
-
-      for (auto const& parts : rules | std::views::take(rules_cnt)) {
-         if(result_for(input.begin(), input.end(), parts) == result) {
-            result_1 += result;
-            boCorrect = true;
-            //std::println(std::cout, "correct {} = {}", result, input);
-            break;
-            }
-         }
-
-      // 20281182715321 richtig
-      // 32565384255325 falsch
-      if(!boCorrect) {
-         for (auto const& parts : rules | std::views::take(rules_cnt)) {
-            for(auto offset : std::views::iota( size_t { 0 }) | std::views::take(input.size() - 1) ) {
-               if (result_for_corr(input.begin(), input.end(), parts, offset) == result) {
-                  result_2 += result;
-                  boCorrect = true;
-                  //std::println(std::cout, "corrected {} / {}", result, input);
-                  break;
-                  }
-               }
-            if (boCorrect) break;
-            }
-         }
+   for (auto& [result, input] : tasks) {
+      result_1 += recursion_func_1<size_t>(input, result, std::plus<size_t>{}, 0u) ? result : 0;
+      result_2 += recursion_func_2<size_t>(input, result, std::plus<size_t>{}, 0u) ? result : 0;
       }
-   result_2 += result_1;
 
-   std::println(std::cout, "the result for the 1st part is {}", result_1);
-   std::println(std::cout, "the result for the 2nd part is {}", result_2);
+   std::println(std::cout, "the result for the 1st part is {}, expected {}", result_1, 20281182715321);
+   std::println(std::cout, "the result for the 2nd part is {}, solved but wrong {}", result_2, 32565384255325);
 
    return { to_String(result_1), to_String(result_2) };
    }
            
+template <typename ty>
+std::vector<std::pair<ty, ty>> combine(std::vector<ty> const& elements) {
+    const size_t n = elements.size();
+   const size_t pair_count = (n * (n - 1)) / 2; 
+   std::vector<std::pair<own::grid::coord_2D_type, own::grid::coord_2D_type>> result;
+   result.reserve(pair_count); 
 
+   for (auto i = 0u; i < elements.size(); ++i) {
+      for (auto j = i + 1; j < elements.size(); ++j) {
+         result.emplace_back(elements[i], elements[j]);
+         }
+      }
+   return result;
+   }
 
 //template <std::ranges::input_range range_ty>
 std::pair<std::string, std::string> RiddleDay8(std::string&& text) { //range_ty const& values) {
+   const auto rows = std::ranges::count(text, '\n');
+   const auto cols = text.size() / std::ranges::count(text, '\n') - 1;
+   text.erase(std::ranges::remove(text, '\n').begin(), text.end());
+   own::grid::grid_2D<char> grid(rows, cols);
+   grid = text;
+
+   std::map<char, std::vector<own::grid::coord_2D_type>> values;
+   auto current = grid.begin();
+   auto it = std::find_if(current, grid.end(), [](char c) { return c != '.'; });
+   while (it != grid.end()) {
+      values[*it].emplace_back(grid.GetCoordinates(it));
+      it = std::find_if(++it, grid.end(), [](char c) { return c != '.'; });
+      }
+
+   for(auto const& [key, vals] : values) {
+      auto pairs = combine<own::grid::coord_2D_type>(vals);
+      for(auto const& [first, second] : pairs) {
+         auto distance = first - second;
+         if(distance) {
+            auto new_coord_1 = first  - *distance;
+            auto new_coord_2 = second + *distance;
+            if (new_coord_1) if (grid.Valid(*new_coord_1)) grid[*new_coord_1] = '#';
+            if (new_coord_2) if (grid.Valid(*new_coord_2)) grid[*new_coord_2] = '#';
+            }
+         }
+      }
+
+   grid.print(std::cout);
+
    size_t result_1 = 0, result_2 = 0;
    return { to_String(result_1), to_String(result_2) };
    }
