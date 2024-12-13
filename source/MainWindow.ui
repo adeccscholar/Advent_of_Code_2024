@@ -7,7 +7,7 @@
     <x>0</x>
     <y>0</y>
     <width>1259</width>
-    <height>668</height>
+    <height>712</height>
    </rect>
   </property>
   <property name="sizePolicy">
@@ -60,12 +60,6 @@
             <verstretch>1</verstretch>
            </sizepolicy>
           </property>
-          <property name="font">
-           <font>
-            <family>Courier New</family>
-            <pointsize>10</pointsize>
-           </font>
-          </property>
           <property name="lineWrapMode">
            <enum>QTextEdit::LineWrapMode::NoWrap</enum>
           </property>
@@ -76,12 +70,6 @@
             <horstretch>1</horstretch>
             <verstretch>1</verstretch>
            </sizepolicy>
-          </property>
-          <property name="font">
-           <font>
-            <family>Courier New</family>
-            <pointsize>10</pointsize>
-           </font>
           </property>
           <property name="lineWrapMode">
            <enum>QTextEdit::LineWrapMode::NoWrap</enum>
@@ -191,6 +179,9 @@
                  <property name="text">
                   <string>edtResult_1</string>
                  </property>
+                 <property name="alignment">
+                  <set>Qt::AlignmentFlag::AlignRight|Qt::AlignmentFlag::AlignTrailing|Qt::AlignmentFlag::AlignVCenter</set>
+                 </property>
                 </widget>
                </item>
                <item>
@@ -215,6 +206,9 @@
                  <property name="text">
                   <string>edtResult_2</string>
                  </property>
+                 <property name="alignment">
+                  <set>Qt::AlignmentFlag::AlignRight|Qt::AlignmentFlag::AlignTrailing|Qt::AlignmentFlag::AlignVCenter</set>
+                 </property>
                 </widget>
                </item>
                <item>
@@ -231,6 +225,13 @@
                 </widget>
                </item>
               </layout>
+             </item>
+             <item>
+              <widget class="QLabel" name="lblEvaluation">
+               <property name="text">
+                <string>lblEvaluation</string>
+               </property>
+              </widget>
              </item>
             </layout>
            </widget>
@@ -254,6 +255,13 @@
              </size>
             </property>
            </spacer>
+          </item>
+          <item>
+           <widget class="QPushButton" name="btnClose">
+            <property name="text">
+             <string>btnClose</string>
+            </property>
+           </widget>
           </item>
           <item>
            <widget class="Line" name="line">

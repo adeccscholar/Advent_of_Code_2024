@@ -133,6 +133,12 @@
     <ClInclude Include="Day_08.h" />
     <ClInclude Include="Day_09.h" />
     <ClInclude Include="Day_10.h" />
+    <ClInclude Include="Day_11_list.h" />
+    <ClInclude Include="Day_11.h" />
+    <ClInclude Include="Day_12.h" />
+    <ClInclude Include="Day_13.h" />
+    <ClInclude Include="my_dynamic_array.h" />
+    <ClInclude Include="my_linked_list.h" />
     <ClInclude Include="my_iterators.h" />
     <ClInclude Include="my_grid2d.h" />
     <ClInclude Include="my_grid_view.h" />

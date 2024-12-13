@@ -2,6 +2,8 @@
 
 // Project: Solutions for Advent of Code 2024
 // file with Advent of Code 2024, 3rd day : Mull It Over
+// author: Volker Hillmann
+// date:   03.12.2024
 // copyright © adecc Systemhaus GmbH 2024, All rights reserved.
 // This project is released under the MIT License.
 
@@ -19,7 +21,7 @@
 using namespace std::string_literals;
 
 template <std::ranges::input_range range_ty>
-std::pair<std::string, std::string> RiddleDay3(range_ty const& values) {
+inline std::pair<std::string, std::string> RiddleDay3(range_ty const& values) {
    static std::regex pattern1(R"(mul\(([1-9][0-9]{0,2}),([1-9][0-9]{0,2})\))");
    std::vector<std::pair<size_t, size_t>> results;
    for (auto const& data : values) {

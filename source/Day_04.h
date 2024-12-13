@@ -2,6 +2,9 @@
 
 // Project: Solutions for Advent of Code 2024
 // file with Advent of Code 2024, 4th day : Ceres Search 
+// solution with the own grid, changed to the new implementation
+// author: Volker Hillmann
+// date:   04.12.2024, last change: 09.12.2024
 // copyright © adecc Systemhaus GmbH 2024, All rights reserved.
 // This project is released under the MIT License.
 
@@ -22,11 +25,9 @@
 
 using namespace std::string_literals;
 
-//template <std::ranges::input_range range_ty>
-std::pair<std::string, std::string> RiddleDay4(std::string&& text) { //TMyForm& frm) { // range_ty const& values
+inline std::pair<std::string, std::string> RiddleDay4(std::string&& text) { 
    std::atomic<size_t> result_1 = 0, result_2 = 0;
 
-   //auto text = frm.GetText("memInput"s);
    auto rows = std::ranges::count(text, '\n');
    auto cols = text.size() / rows - 1;
    text.erase(std::ranges::remove(text, '\n').begin(), text.end());

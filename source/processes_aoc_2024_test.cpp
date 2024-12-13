@@ -1,5 +1,7 @@
 ﻿// Project: Solutions for Advent of Code 2024
 // file with test data and solutions for the days, test function
+// author: Volker Hillmann
+// date:   05.12.2024, last change: 13.12.2024
 // copyright © adecc Systemhaus GmbH 2024, All rights reserved.
 // This project is released under the MIT License.
 
@@ -19,6 +21,10 @@
 #include <mdspan>
 #include <print>
 
+#include "Day_08.h"
+#include "my_dynamic_array.h"
+
+
 using namespace std::string_literals;
 using namespace std::string_view_literals;
 
@@ -34,31 +40,29 @@ TAOC2024Processes::testDatas TAOC2024Processes::test = {
            "75,47,61,53,29\n97,61,53,29,13\n75,29,13\n75,97,47,61,53\n61,13,29\n97,13,75,29,47"s, { { 143, 123 } } } },
    {  6, { "....#.....\n.........#\n..........\n..#.......\n.......#..\n..........\n.#..^.....\n"s + 
            "........#.\n#.........\n......#..."s, { { 41, 6 } } } },
-   {  7, { "190: 10 19\n3267: 81 40 27\n83 : 17 5\n156 : 15 6\n7290 : 6 8 6 15\n161011 : 16 10 13\n" +
+   {  7, { "190: 10 19\n3267: 81 40 27\n83 : 17 5\n156 : 15 6\n7290 : 6 8 6 15\n161011 : 16 10 13\n"s +
            "192 : 17 8 14\n21037 : 9 7 18 13\n292 : 11 6 16 20"s, { { 3749, 11387 } } }  },
    {  8, { "............\n........0...\n.....0......\n.......0....\n....0.......\n......A.....\n"s +
            "............\n............\n........A...\n.........A..\n............\n............"s, { { 14, 0 } } } },
    {  9, { "2333133121414131402"s, { { 1928, 0 } } } },
-   { 10, { "89010123\n78121874\n87430965\n96549874\n45678903\n32019012\n01329801\n10456732"s, { { 36, 0 } } } }
+   { 10, { "89010123\n78121874\n87430965\n96549874\n45678903\n32019012\n01329801\n10456732"s, { { 36, 0 } } } },
+   { 11, { "125 17"s, { { 55312, 0 } } } },
+   { 12, { "RRRRIICCFF\nRRRRIICCCF\nVVRRRCCFFF\nVVRCCCJFFF\nVVVVCJJCFE\nVVIVCCJJEE\n"s +
+           "VVIIICJJEE\nMIIIIIJJEE\nMIIISIJEEE\nMMMISSJEEE"s, { { 0, 0 } } } },
+   { 13, { "Button A : X + 94, Y + 34\nButton B : X + 22, Y + 67\nPrize : X = 8400, Y = 5400\n\n"s +
+           "Button A : X + 26, Y + 66\nButton B : X + 67, Y + 21\nPrize : X = 12748, Y = 12176\n\n"s +
+           "Button A : X + 17, Y + 86\nButton B : X + 84, Y + 37\nPrize : X = 7870, Y = 6450\n\n"s +
+           "Button A : X + 69, Y + 23\nButton B : X + 27, Y + 71\nPrize : X = 18641, Y = 10279" , { { 36, 0 } } } }
    };
 
 
-void combine(const std::vector<int>& values, std::vector<int>& current, size_t start, size_t k) {
-   if (current.size() == k) {
-      // Ergebnis anzeigen
-      for (int v : current) std::cout << v << " ";
-      std::cout << "\n";
-      return;
-   }
 
-   for (size_t i = start; i < values.size(); ++i) {
-      current.push_back(values[i]);
-      combine(values, current, i + 1, k); // Rekursiv weitermachen
-      current.pop_back();                // Backtrack
-   }
-}
 
 
 void TAOC2024Processes::TestCase(TMyForm&& frm) {
+   frm.SetLabel("lblEvaluation"s, ""s);
+
+
+
 
    }

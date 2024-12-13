@@ -2,6 +2,8 @@
 
 // Project: Solutions for Advent of Code 2024
 // file with Advent of Code, 8th day : Resonant Collinearity
+// author: Volker Hillmann
+// date:   08.12.2024
 // copyright © adecc Systemhaus GmbH 2024, All rights reserved.
 // This project is released under the MIT License.
 
@@ -31,8 +33,8 @@ std::vector<std::pair<ty, ty>> combine(std::vector<ty> const& elements) {
    return result;
 }
 
-//template <std::ranges::input_range range_ty>
-std::pair<std::string, std::string> RiddleDay8(std::string&& text) { //range_ty const& values) {
+
+inline std::pair<std::string, std::string> RiddleDay8(std::string&& text) { 
    const auto rows = std::ranges::count(text, '\n');
    const auto cols = text.size() / std::ranges::count(text, '\n') - 1;
    text.erase(std::ranges::remove(text, '\n').begin(), text.end());

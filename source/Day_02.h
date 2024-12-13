@@ -3,6 +3,8 @@
 // AOC 2024, 2nd day : Red-Nosed Reports
 // Project: Solutions for Advent of Code 2024
 // file with Advent of Code 2024, 2nd day : Red-Nosed Reports
+// author: Volker Hillmann
+// date:   02.12.2024
 // copyright © adecc Systemhaus GmbH 2024, All rights reserved.
 // This project is released under the MIT License.
 

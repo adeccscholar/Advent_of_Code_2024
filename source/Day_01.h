@@ -2,6 +2,8 @@
 
 // Project: Solutions for Advent of Code 2024
 // file with Advent of Code 2024, 1st day : Historian Hysteria
+// author: Volker Hillmann
+// date:   01.12.2024
 // copyright © adecc Systemhaus GmbH 2024, All rights reserved.
 // This project is released under the MIT License.
 
@@ -41,4 +43,4 @@ std::pair<std::string, std::string> RiddleDay1(range_ty const& values) {
    std::println(std::cout, "the result for the 2nd part is {}", result_2);   // 23228917
    std::println(std::clog, "1st day finished");
    return { to_String(result_1), to_String(result_2) };
-}
+   }

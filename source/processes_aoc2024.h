@@ -30,7 +30,7 @@ public:
 
    static void Init(TMyForm&& frm);
    static void Info(TMyForm&& frm);
-   static void Processes(size_t day, TMyForm&& frm);
+   static void Processes(TMyForm&& frm);
    static void SetResult(TMyForm& frm, std::pair<std::string, std::string> const&);
    static void CopyTestData(TMyForm&& frm);
    static void ChangeRiddle(TMyForm&& frm);
@@ -39,6 +39,12 @@ public:
 
    static cntrlData const& GetData(std::string const&);
    static size_t GetDay(std::string const&);
+
+   static void                       CleanResults(TMyForm& frm);
+private:
+   static cntrlDatas::const_iterator GetControlInfo(std::string const& strDay);
+   static void                       StartDailyTask(TMyForm& frm, cntrlData const& cntrl);
+   static void                       CheckResults(TMyForm& frm, size_t day);
    };
 
 template <>

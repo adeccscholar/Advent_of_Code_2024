@@ -2,6 +2,8 @@
 
 // Project: Solutions for Advent of Code 2024
 // file with Advent of Code 2024, 5th day : Print Queue
+// author: Volker Hillmann
+// date:   05.12.2024, last change: 06.12.2024
 // copyright © adecc Systemhaus GmbH 2024, All rights reserved.
 // This project is released under the MIT License.
 
@@ -20,8 +22,7 @@
 #include <print>
 
 
-//template <std::ranges::input_range range_ty>
-std::pair<std::string, std::string> RiddleDay5(TMyForm& frm) { // range_ty const& values
+inline std::pair<std::string, std::string> RiddleDay5(TMyForm& frm) { 
    auto values = frm.GetLines("memInput");
    auto rules        = values | std::views::transform(toString<std::string_view>)
                               | std::views::filter(checkSeparatedIntegersPairs)

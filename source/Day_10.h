@@ -2,6 +2,8 @@
 
 // Project: Solutions for Advent of Code 2024
 // file with Advent of Code, 10th day : Hoof It
+// author: Volker Hillmann
+// date:   10.12.204
 // copyright © adecc Systemhaus GmbH 2024, All rights reserved.
 // This project is released under the MIT License.
 
@@ -18,6 +20,8 @@ std::pair<std::string, std::string> RiddleDay10(std::string&& text) {
    text.erase(std::ranges::remove(text, '\n').begin(), text.end());
    own::grid::grid_2D<char> grid(rows, cols);
    grid = text;
+
+
 
    size_t result_1 = 0, result_2 = 0;
    return { to_String(result_1), to_String(result_2) };

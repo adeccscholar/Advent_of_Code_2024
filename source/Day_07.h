@@ -2,6 +2,9 @@
 
 // Project: Solutions for Advent of Code 2024
 // file with Advent of Code 2024, 7th day : Bridge Repair
+// solution with a recursion
+// author: Volker Hillmann
+// date:   07.12.2024, last change: 10.12.2024
 // copyright © adecc Systemhaus GmbH 2024, All rights reserved.
 // This project is released under the MIT License.
 

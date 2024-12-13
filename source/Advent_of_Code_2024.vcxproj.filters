@@ -78,6 +78,24 @@
     <ClInclude Include="Day_10.h">
       <Filter>Header - Days</Filter>
     </ClInclude>
+    <ClInclude Include="Day_11_list.h">
+      <Filter>Header - Days</Filter>
+    </ClInclude>
+    <ClInclude Include="my_linked_list.h">
+      <Filter>Header - Tools</Filter>
+    </ClInclude>
+    <ClInclude Include="my_dynamic_array.h">
+      <Filter>Header - Tools</Filter>
+    </ClInclude>
+    <ClInclude Include="Day_11.h">
+      <Filter>Header - Days</Filter>
+    </ClInclude>
+    <ClInclude Include="Day_12.h">
+      <Filter>Header - Days</Filter>
+    </ClInclude>
+    <ClInclude Include="Day_13.h">
+      <Filter>Header - Days</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <Filter Include="Header">

@@ -1,4 +1,27 @@
 <RCC>
-    <qresource prefix="MainWindow">
+    <qresource prefix="/">
+        <file>adecc_Scholar.ico</file>
+	</qresource>
+    <qresource prefix="/Fonts">
+        <file>Fonts/DejaVuSans.ttf</file>
+        <file>Fonts/DejaVuSansCondensed.ttf</file>
+        <file>Fonts/DejaVuSansCondensed-Bold.ttf</file>
+        <file>Fonts/DejaVuSansCondensed-BoldOblique.ttf</file>
+        <file>Fonts/DejaVuSansCondensed-Oblique.ttf</file>
+        <file>Fonts/DejaVuSansMono.ttf</file>
+        <file>Fonts/DejaVuSansMono-Bold.ttf</file>
+        <file>Fonts/DejaVuSansMono-BoldOblique.ttf</file>
+        <file>Fonts/DejaVuSansMono-Oblique.ttf</file>
     </qresource>
+    <qresource prefix="/Data">
+        <file>adecc_scholar.css</file>
+    </qresource>
+    <qresource prefix="/images">
+        <file>adecc_scholar.css</file>
+        <file>background.jpg</file>
+        <file>banner.jpg</file>
+        <file>dropdown-pfeil.png</file>
+        <file>background-status.jpg</file>
+    </qresource>
+    <qresource prefix="/Fonts"/>
 </RCC>

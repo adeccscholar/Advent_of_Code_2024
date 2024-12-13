@@ -60,22 +60,25 @@ namespace own {
          auto operator <=> (const coord_2D_type& rhs) const = default;
 
          std::optional<coord_2D_type> operator + (coord_2D_distance_ty const& other) const {
-            auto val1 = static_cast<int64_t>(row()) + std::get<0>(other);
-            auto val2 = static_cast<int64_t>(col()) + std::get<1>(other);
+            auto const& [delta_row, delta_col] = other;
+            auto val1 = static_cast<int64_t>(row()) + delta_row;
+            auto val2 = static_cast<int64_t>(col()) + delta_col;
             if (val1 < 0 || val2 < 0) return { };
             else return { { static_cast<size_t>(val1), static_cast<size_t>(val2) } };
             }
 
          std::optional<coord_2D_type> operator - (coord_2D_distance_ty const& other) const {
-            auto val1 = static_cast<int64_t>(row()) - std::get<0>(other);
-            auto val2 = static_cast<int64_t>(col()) - std::get<1>(other);
+            auto const& [delta_row, delta_col] = other;
+            auto val1 = static_cast<int64_t>(row()) - delta_row;
+            auto val2 = static_cast<int64_t>(col()) - delta_col;
             if (val1 < 0 || val2 < 0) return { };
             else return { { static_cast<size_t>(val1), static_cast<size_t>(val2) } };
             }
 
 
          std::optional<coord_2D_distance_ty> operator - (coord_2D_type const& other) const {
-            return { { static_cast<int64_t>(row()) - other.row(), static_cast<int64_t>(col()) - other.col()  } };
+            return { { static_cast<int64_t>(row()) - static_cast<int64_t>(other.row()), 
+                       static_cast<int64_t>(col()) - static_cast<int64_t>(other.col())  } };
             }
 
 
@@ -237,7 +240,10 @@ namespace own {
             }
 
          coord_2D_type GetCoordinates(const_iterator it) const {
-            if (auto pos = std::distance(cbegin(), it); pos >= raw_data.size()) {
+            if(it < cbegin()) {
+               throw std::invalid_argument("iterator for grid2d is out of bounds.");
+               }
+            if (size_t pos = std::distance(cbegin(), it); pos >= raw_data.size()) {
                throw std::out_of_range("position in grid_2D is out of bounds");
                }
             else [[likely]] return { pos / cols_val, pos % cols_val };
@@ -292,6 +298,7 @@ namespace own {
             size_t            current_index;
          public:
             using iterator_category = std::random_access_iterator_tag;
+            using iterator_type     = iterator_base<IsConst>;
             using value_type        = ty;
             using difference_type   = std::ptrdiff_t;
             using pointer           = ty*;

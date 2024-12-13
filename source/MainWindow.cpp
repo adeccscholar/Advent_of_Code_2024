@@ -60,6 +60,7 @@ MainWindow::MainWindow(QWidget *parent) : QMainWindow(parent) {
     connect(ui.chkTestData,      &QCheckBox::stateChanged,        this, &MainWindow::CopyTestData);
 
     connect(ui.btnTest,          &QPushButton::clicked,           this, &MainWindow::TestCase);
+    connect(ui.btnClose,         &QPushButton::clicked,           this, [this]() { this->close(); });
 
     //ui.btnTest->setVisible(false);
 
@@ -87,6 +88,7 @@ void MainWindow::DataURL() {
 void MainWindow::PasteData() {
    TMyForm frm(this);
    TMyWait wait("memInput"s);
+   TAOC2024Processes::CleanResults(frm);
    frm.SetCheckBox("chkTestData"s, false);
    std::ostream oss(frm.GetAsStreamBuf("memInput"s, true));
    std::println(oss, "{}", getClipboardContent());
@@ -98,9 +100,7 @@ void MainWindow::ChangeRiddle(int index) {
    }
 
 void MainWindow::OldRiddle() {
-   TMyForm frm(this); 
-   auto day = TAOC2024Processes::GetDay(frm.CurrentText("cbxOldRiddles"));
-   TAOC2024Processes::Processes(day, std::forward<TMyForm>(frm));
+   TAOC2024Processes::Processes(TMyForm{ this });
    }
 
 
@@ -121,6 +121,5 @@ void MainWindow::CopyResult_2_Clipboard() {
    }
 
 void MainWindow::TestCase() {
-   TMyForm frm(this);
    TAOC2024Processes::TestCase(TMyForm { this } );
    }
