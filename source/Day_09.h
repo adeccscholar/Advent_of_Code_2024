@@ -37,7 +37,6 @@ inline std::pair<std::string, std::string> RiddleDay9(std::string&& text) {
 
 
    for(auto const& value : zipped) {
-      static std::optional<size_t> empty = { };
       if (std::get<1>(value)) disk.insert(disk.end(), std::get<0>(value), std::optional { std::get<2>(value) });
       else disk.insert(disk.end(), std::get<0>(value), std::nullopt );
       }

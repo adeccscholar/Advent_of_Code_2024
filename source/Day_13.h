@@ -13,6 +13,7 @@
 #include <utility>
 #include <vector>
 #include <tuple>
+#include <cmath>
 #include <ranges>
 #include <print>
 
@@ -52,21 +53,25 @@ std::tuple<ty, ty, ty> extendedEuclid(ty a, ty b) {
    }
 
 template <my_integral_ty ty>
-std::vector<std::pair<ty, ty>> solve_linear_diophantine(ty a1,  ty b1, ty c1, ty a2, ty b2, ty c2) {
+std::vector<std::pair<ty, ty>> solve_linear_diophantine(ty a1, ty b1, ty c1, ty a2, ty b2, ty c2) {
    std::vector<std::pair<ty, ty>> solutions;
 
-   auto [gcd, x, y] = extendedEuclid(a1, b2);
+   auto [gcd, x, y] = extended_gcd(a1, b2);
 
    if (c1 % gcd != 0 || c2 % gcd != 0)  return solutions; // no solution if c1 and c2 are not divisible by the gcd.
 
-   // Skalieren der speziellen Lösung und Anpassung für das Gleichungssystem
+   // scale the specific solution and adjust for the system of equations
    uint64_t k = c1 / gcd;
    x *= k;
    y *= k;
 
-   // Bestimmen der allgemeinen Lösung
-   uint64_t factor = std::abs((b1 * a2 - a1 * b2) / gcd);
-   for (int64_t i = -factor; i <= factor; ++i) { // int64_t für negative Werte
+   auto abs = [](int64_t value) -> int64_t {
+      return value >= 0 ? value : -value;
+      };
+
+   // Determine the general solution, use here int64_t for negative values
+   int64_t factor = abs((b1 * a2 - a1 * b2) / gcd);
+   for (int64_t i = -factor; i <= factor; ++i) { 
       solutions.emplace_back(x + i * b2 / gcd, y - i * a2 / gcd);
       }
 
@@ -76,5 +81,17 @@ std::vector<std::pair<ty, ty>> solve_linear_diophantine(ty a1,  ty b1, ty c1, ty
 template <std::ranges::input_range range_ty>
 std::pair<std::string, std::string> RiddleDay13(range_ty const& values) {
    size_t result_1 = 0, result_2 = 0;
+   std::tuple<int64_t, int64_t, int64_t> equation1 = { 94, 22, 8400 };
+   std::tuple<int64_t, int64_t, int64_t> equation2 = { 34, 67, 5400 };
+   auto [a1, b1, c1] = equation1;
+   auto [a2, b2, c2] = equation2;
+
+   std::vector<std::pair<int64_t, int64_t>> solutions = solve_linear_diophantine<int64_t>(a1, b1, c1, a2, b2, c2);
+
+   // Ausgabe der Lösungen
+   for (const auto& [x, y] : solutions) {
+      std::cout << "A = " << x << ", B = " << y << std::endl;
+   }
+
    return { to_String(result_1), to_String(result_2) };
    }

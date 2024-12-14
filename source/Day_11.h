@@ -120,9 +120,7 @@ inline std::pair<std::string, std::string> RiddleDay11(std::string&& text) {
                        };
 
       for (auto node = values.second.begin(); node != values.second.end(); ++node) {
-         for (auto& rule : rules) {
-            if (rule(node)) break;
-            }
+         for (auto& rule : rules) if (rule(node)) break;
          }
       };
 
