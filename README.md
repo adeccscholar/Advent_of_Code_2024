@@ -40,6 +40,44 @@ To access the appropriate input data for the daily challenges:
 Copyright © 2024, adecc Systemhaus GmbH
 The project is licensed under the MIT license and can be used and adapted under the given conditions.
 
+## Word Problems
+
+### The Importance of Word Problems for Analytical Thinking and Their Relevance to Computer Science
+
+Word problems in mathematics are much more than just exercises in computation. They present real or 
+fictional scenarios where the key is to think analytically, structure information, and find solutions. 
+This process develops essential skills:
+
+1. **Problem Recognition:** Identifying relevant information and filtering out irrelevant details requires 
+precise reading and analytical thinking.
+
+2. **Application of Knowledge:** Word problems connect abstract mathematical concepts with practical 
+applications, teaching us how to apply learned skills to new situations.
+
+3. **Learning New Skills:** Often, word problems contain unexpected challenges that encourage creative 
+solutions or the acquisition of new methods.
+
+### Word Problems for training of computer scientists
+
+These skills are especially critical for training computer scientists, as they form the core of 
+problem-solving in computer science:
+
+1. **Problem Recognition and Definition:** Computer scientists must analyze problems carefully, 
+break them into smaller sub-problems, and identify the key questions. Like with word problems, 
+this is the first step in finding effective solutions.
+
+2. **Data Structures:** Just as important numbers, variables, or relationships are identified in 
+a mathematical task, computer scientists search for appropriate data structures to model relevant 
+information.
+
+3. **Algorithmic Thinking:** A computer scientist develops algorithms to solve problems efficiently—similar 
+to finding a calculation strategy in a word problem. This requires the ability to think analytically and 
+systematically.
+
+In both computer science and mathematics, the challenge lies in working with limited information and numerous 
+possible solution paths to select the best approach. Solving word problems trains precisely this ability, 
+making them an indispensable foundation for success in computer science and other analytical disciplines.
+
 ## License Notice for Embedded Fonts
 
 This project includes the **DejaVu Sans Fonts** which are based on the **Bitstream Vera Fonts**. 

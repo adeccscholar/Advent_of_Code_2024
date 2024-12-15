@@ -26,17 +26,19 @@
 using namespace std::string_literals;
 
 inline std::pair<std::string, std::string> RiddleDay4(std::string&& text) { 
+   const own::grid::EKind grid_kind = own::grid::EKind::grid;
+   using grid_ty = own::grid::grid_2D<char, grid_kind>;
    std::atomic<size_t> result_1 = 0, result_2 = 0;
 
    auto rows = std::ranges::count(text, '\n');
    auto cols = text.size() / rows - 1;
    text.erase(std::ranges::remove(text, '\n').begin(), text.end());
 
-   own::grid::grid_2D<char> vault(rows, cols);
+   grid_ty vault(rows, cols);
    vault = text;
 
     std::vector<std::string> patters = { "XMAS"s, "SAMX"s };
-   auto pathways = own::grid::find_all_paths(vault);
+   auto pathways = own::grid::find_all_paths<char, own::grid::EKind::grid>(vault);
 
    for (auto const& patter : patters) {
       auto searcher = std::boyer_moore_searcher(patter.begin(), patter.end());

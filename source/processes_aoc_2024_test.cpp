@@ -1,7 +1,7 @@
 ﻿// Project: Solutions for Advent of Code 2024
 // file with test data and solutions for the days, test function
 // author: Volker Hillmann
-// date:   05.12.2024, last change: 13.12.2024
+// date:   05.12.2024, last change: 15.12.2024
 // copyright © adecc Systemhaus GmbH 2024, All rights reserved.
 // This project is released under the MIT License.
 
@@ -52,7 +52,22 @@ TAOC2024Processes::testDatas TAOC2024Processes::test = {
    { 13, { "Button A : X + 94, Y + 34\nButton B : X + 22, Y + 67\nPrize : X = 8400, Y = 5400\n\n"s +
            "Button A : X + 26, Y + 66\nButton B : X + 67, Y + 21\nPrize : X = 12748, Y = 12176\n\n"s +
            "Button A : X + 17, Y + 86\nButton B : X + 84, Y + 37\nPrize : X = 7870, Y = 6450\n\n"s +
-           "Button A : X + 69, Y + 23\nButton B : X + 27, Y + 71\nPrize : X = 18641, Y = 10279" , { { 36, 0 } } } }
+           "Button A : X + 69, Y + 23\nButton B : X + 27, Y + 71\nPrize : X = 18641, Y = 10279" , { { 36, 0 } } } },
+   { 14, { "p=0,4 v=3,-3\np=6,3 v=-1,3\np=10,3 v=-1,2\np=2,0 v=2,-1\np=0,0 v=1,3\n" +
+           "p=3,0 v=-2,-2\np=7,6 v=-1,-3\np=3,0 v=-1,-2\np=9,3 v=2,3\np=7,3 v=-1,2\n"s +
+           "p=2,4 v=2,-3\np=9,5 v=-3,-3"s, { { 12, 0 } } } },
+   { 15, { "##########\n#..O..O.O#\n#......O.#\n#.OO..O.O#\n#..O@..O.#\n"s +
+           "#O#..O...#\n#O..O..O.#\n#.OO.O.OO#\n#....O...#\n##########\n\n"s +
+           "<vv>^<v^>v>^vv^v>v<>v^v<v<^vv<<<^><<><>>v<vvv<>^v^>^<<<><<v<<<v^vv^v>^\n"s +
+           "vvv<<^>^v^^><<>>><>^<<><^vv^^<>vvv<>><^^v>^>vv<>v<<<<v<^v>^<^^>>>^<v<v\n"s +
+           "><>vv>v^v^<>><>>>><^^>vv>v<^^^>>v^v^<^^>v^^>v^<^v>v<>>v^v^<v>v^^<^^vv<\n"s +
+           "<<v<^>>^^^^>>>v^<>vvv^><v<<<>^^^vv^<vvv>^>v<^^^^v<>^>vvvv><>>v^<<^^^^^\n"s +
+           "^><^><>>><>^^<<^^v>>><^<v>^<vv>>v>>>^v><>^v><<<<v>>v<v<v>vvv>^<><<>^><\n"s +
+           "^>><>^v<><^vvv<^^<><v<<<<<><^v<<<><<<^^<v<^^^><^>>^<v^><<<^>>^v<v^v<v^\n"s +
+           ">^>>^v>vv>^<<^v<>><<><<v<<v><>v<^vv<<<>^^v^>^^>>><<^v>>v^v><^^>>^<>vv^\n"s +
+           "<><^^>^^^<><vvvvv^v<v<<>^v<v>v<<^><<><<><<<^^<<<^<<>><<><^^^>^^<>^>v<>\n"s +
+           "^^>vv<^v^v<vv>^<><v<^v>^^^>>>^^vvv^>vvv<>>>^<^>>>>>^<<^v>^vvv<>^<><<v>\n"s +
+           "v^^>>><<^^<>>^v^<v^vv<>v^<<>^<^v^v><^<<<><<^<v><v<>vv>>v><v^<vv<>v^<<^"s , { { 0, 0 } } } },
    };
 
 

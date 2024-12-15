@@ -3,6 +3,8 @@
 // Project: Solutions for Advent of Code 2024
 // file with 2 dimensional grid, matching coordinates and supporting pathways
 // example to demonstrate the implementation of iterators, and use of mapping to acces data
+// author: Volker Hillmann
+// date: 06.12.2024, rebuild 15.12.2024
 // copyright © adecc Systemhaus GmbH 2024, All rights reserved.
 // This project is released under the MIT License.
 
@@ -14,9 +16,10 @@
 #include <stdexcept>
 
 #include <type_traits>
-#include <concepts>
-
-#include <mdspan>
+#include <ranges>   // C++20
+#include <concepts> // C++20
+#include <expected> // C++23
+#include <mdspan>   // C++23
 
 using namespace std::string_literals;
 
@@ -26,105 +29,222 @@ namespace own {
 
    namespace grid {
 
-      //using coord_2D_type = std::tuple<size_t, size_t>;
+      using int_ty  = int64_t;
+      using size_ty = uint64_t;
 
-      using coord_2D_distance_ty = std::tuple<int64_t, int64_t>;
+      enum class EKind : uint32_t { grid, matrix };
 
-      class coord_2D_type {
-      private:
-         std::tuple<size_t, size_t> coords;
-      public:
-         coord_2D_type() : coords(0, 0) { }
-         coord_2D_type(std::tuple<size_t, size_t>&& other) noexcept : coords(std::move(other)) {}
-         coord_2D_type(std::tuple<size_t, size_t> const& other) : coords(std::get<0>(other), std::get<1>(other)) {}
-         coord_2D_type(size_t r, size_t c) : coords(r, c) {}
-         coord_2D_type(coord_2D_type const& other) : coords(other.coords) {}
-         coord_2D_type(coord_2D_type&& other) noexcept : coords(std::move(other.coords)) {}
-         ~coord_2D_type() = default;
+      template <EKind kind>
+      concept is_grid = kind == EKind::grid;
 
-         coord_2D_type& operator = (coord_2D_type const& other) {
-            if (this != &other) coords = other.coords;
-            return *this;
-            }
+      template <EKind kind>
+      concept is_matrix = kind == EKind::matrix;
 
-         coord_2D_type& operator = (coord_2D_type&& other) noexcept {
-            if (this != &other) coords = std::move(other.coords);
-            return *this;
-            }
-
-         coord_2D_type& operator = (std::tuple<size_t, size_t> const& other) {
-            coords = other;
-            return *this;
-            }
-
-         auto operator <=> (const coord_2D_type& rhs) const = default;
-
-         std::optional<coord_2D_type> operator + (coord_2D_distance_ty const& other) const {
-            auto const& [delta_row, delta_col] = other;
-            auto val1 = static_cast<int64_t>(row()) + delta_row;
-            auto val2 = static_cast<int64_t>(col()) + delta_col;
-            if (val1 < 0 || val2 < 0) return { };
-            else return { { static_cast<size_t>(val1), static_cast<size_t>(val2) } };
-            }
-
-         std::optional<coord_2D_type> operator - (coord_2D_distance_ty const& other) const {
-            auto const& [delta_row, delta_col] = other;
-            auto val1 = static_cast<int64_t>(row()) - delta_row;
-            auto val2 = static_cast<int64_t>(col()) - delta_col;
-            if (val1 < 0 || val2 < 0) return { };
-            else return { { static_cast<size_t>(val1), static_cast<size_t>(val2) } };
-            }
-
-
-         std::optional<coord_2D_distance_ty> operator - (coord_2D_type const& other) const {
-            return { { static_cast<int64_t>(row()) - static_cast<int64_t>(other.row()), 
-                       static_cast<int64_t>(col()) - static_cast<int64_t>(other.col())  } };
-            }
-
-
-         operator std::tuple<size_t, size_t>& () { return coords; }
-         operator std::tuple<size_t, size_t> () const { return coords; }
-
-         size_t row() const { return std::get<0>(coords);  }
-         size_t col() const { return std::get<1>(coords); }
-
-         std::tuple<size_t, size_t>&       get_data() { return coords; }
-         std::tuple<size_t, size_t> const& get_data() const { return coords; }
-      };
-
-      template <typename ty>
+      template <typename ty = char, EKind kind = EKind::grid>
       class grid_2D {
+         template <typename ty, EKind kind>
+         friend class grid2d_view;
       public:
-         using mdspan2d_t = std::mdspan<ty, std::dextents<size_t, 2>>;
+         using mdspan2d_t = std::mdspan<ty, std::dextents<size_ty, 2>>;
          using iterator = typename std::vector<ty>::iterator;
          using const_iterator = typename std::vector<ty>::const_iterator;
+
+         class coord_ty {
+            template <typename ty, EKind kind>
+            friend class grid_2D;
+            friend void swap(coord_ty& lhs, coord_ty& rhs) noexcept { std::swap(lhs.get_data, rhs.get_data); }
+
+         private:
+
+            class distance_ty {
+               friend void swap(distance_ty& lhs, distance_ty& rhs) noexcept { std::swap(lhs.data, rhs.data);  }
+            public:
+               using data_ty = std::tuple<int_ty, int_ty>;
+               data_ty data;
+            public:
+               distance_ty() : data{ 0, 0 } {};
+               distance_ty(distance_ty const& other) : data { other.data } { }
+               distance_ty(distance_ty&& other) noexcept : data { std::move(other.data) } { }
+               distance_ty(int_ty row, int_ty col) requires is_grid<kind> : data { row, col } { }
+               distance_ty(int_ty x_val, int_ty y_val) requires is_matrix<kind> : data{ y_val, x_val } {}
+               distance_ty(data_ty const& values) : data { values } { }
+               distance_ty(data_ty && values) : data {  std::move(values) } {}
+               ~distance_ty() = default;
+
+               distance_ty& operator = (distance_ty const& other) {
+                  if (this != &other) data = other.data;
+                  return *this;
+                  }
+
+               distance_ty& operator = (distance_ty&& other) noexcept {
+                  if (this != &other) std::swap(data, other.data);
+                  return *this;
+                  }
+
+               auto operator <=> (distance_ty&& rhs) const { return data <=> rhs.data; }
+
+               distance_ty& operator += (distance_ty&& other) noexcept {
+                  get<0>(data) += get<0>(other.data);
+                  get<1>(data) += get<1>(other.data);
+                  return *this;
+                  }
+
+               distance_ty& operator -= (distance_ty&& other) noexcept {
+                  get<0>(data) -= get<0>(other.data);
+                  get<1>(data) -= get<1>(other.data);
+                  return *this;
+                  }
+
+               distance_ty operator + (distance_ty&& other) noexcept {
+                  distance_ty result(data);
+                  get<0>(result) += get<0>(other.data);
+                  get<1>(result) += get<1>(other.data);
+                  return result;
+                  }
+
+               distance_ty operator - (distance_ty&& other) noexcept {
+                  distance_ty result(data);
+                  get<0>(result) -= get<0>(other.data);
+                  get<1>(result) -= get<1>(other.data);
+                  return result;
+                  }
+
+               int_ty const& delta_Rows() const requires is_grid<kind> { return std::get<0>(data); }
+               int_ty const& delta_Cols() const requires is_grid<kind> { return std::get<1>(data); }
+
+               int_ty const& delta_x() const requires is_matrix<kind> { return std::get<0>(data); }
+               int_ty const& delta_y() const requires is_matrix<kind> { return std::get<1>(data); }
+
+               operator data_ty& () { return data;  }
+               operator data_ty const& () const { return data; }
+            };
+
+            grid_2D const& grid;
+         public:
+            using data_ty = std::tuple<size_ty, size_ty>;
+            using error_ty = std::pair<coord_ty, distance_ty>;
+            data_ty        data;
+         public:
+            coord_ty(grid_2D const& parent) : grid { parent }, data { 0, 0 } { }
+            coord_ty(coord_ty const& other) : grid{ other.grid }, data { other.data } {}
+            coord_ty(coord_ty&& other) noexcept : grid { other.grid }, data { std::move(other.data) } {}
+            coord_ty(grid_2D const& parent, data_ty const& other) : grid{ parent }, data { other } {}
+            coord_ty(grid_2D const& parent, data_ty&& other) noexcept : grid{ parent }, data { std::move(other) } {}
+            coord_ty(grid_2D const& parent, size_ty r, size_ty c) requires is_grid<kind> : grid{ parent }, data { r, c } {}
+            coord_ty(grid_2D const& parent, size_ty x_val, size_ty y_val) requires is_matrix<kind> : grid{ parent }, data{ y_val, x_val } {}
+            virtual ~coord_ty() = default;
+
+            operator data_ty& () { return data; }
+            operator data_ty const& () const { return data; }
+
+            coord_ty& operator = (coord_ty const& other) {
+               if (this != &other) data = other.data;
+               return *this;
+               }
+
+            coord_ty& operator = (coord_ty&& other) noexcept {
+               if (this != &other) data = std::move(other.data);
+               return *this;
+               }
+
+            coord_ty& operator = (data_ty const& other) {
+               data = other;
+               return *this;
+               }
+
+            coord_ty& operator = (data_ty&& other) {
+               data = std::move(other);
+               return *this;
+               }
+
+            auto operator <=> (coord_ty const& rhs) const = default;
+
+            bool operator == (coord_ty const& rhs) const {
+               return data == rhs.data;
+               }
+
+            std::expected<coord_ty, error_ty> operator + (distance_ty const& other) const {
+               auto const& [delta_row, delta_col] = other;
+               auto val1 = static_cast<int64_t>(row()) + delta_row;
+               auto val2 = static_cast<int64_t>(col()) + delta_col;
+               if (val1 < 0 || val2 < 0) return { };
+               else return { { static_cast<size_t>(val1), static_cast<size_t>(val2) } };
+               }
+
+            std::expected<coord_ty, error_ty> operator - (distance_ty const& other) const {
+               auto const& [first, second] = other;
+               auto val1 = static_cast<int64_t>(row()) - first;
+               auto val2 = static_cast<int64_t>(col()) - second;
+               if (val1 < 0 || val2 < 0) return { };
+               else return { { static_cast<size_t>(val1), static_cast<size_t>(val2) } };
+               }
+
+
+            distance_ty operator - (coord_ty const& other) const {
+               return  { static_cast<int_ty>(std::get<0>(data)) - static_cast<int_ty>(std::get<0>(other.data)),
+                         static_cast<int_ty>(std::get<1>(data)) - static_cast<int_ty>(std::get<1>(other.data)) };
+               }
+
+
+
+            size_ty row() const requires is_grid<kind> { return std::get<0>(data);  }
+            size_ty col() const requires is_grid<kind> { return std::get<1>(data); }
+
+            size_ty x() const requires is_matrix<kind> { return std::get<1>(data); }
+            size_ty y() const requires is_matrix<kind> { return std::get<0>(data); }
+
+            data_ty&       get_data() { return data; }
+            data_ty const& get_data() const { return data; }
+         };
+
+
       private:
+         using data_ty = std::tuple<size_ty, size_ty>; // before size_t  rows_val, cols_val
          std::vector<ty> raw_data;
          mdspan2d_t      data_span;
-         size_t          rows_val, cols_val;
+         data_ty         data;
       public:
-
-         grid_2D(size_t rows_para, size_t cols_para) : raw_data(rows_para * cols_para), 
+         grid_2D(size_ty rows_para, size_ty cols_para) requires is_grid<kind>
+                                                     : raw_data(rows_para * cols_para), 
                                                        data_span(raw_data.data(), rows_para, cols_para), 
-                                                       rows_val(rows_para), cols_val(cols_para) { }
+                                                       data { rows_para, cols_para } { }
 
-         grid_2D(grid_2D const& other) : raw_data(other.raw_data), 
-                                         data_span(raw_data.data(), other.rows_val, other.cols_val),
-                                         rows_val(other.rows_val), cols_val(other.cols_val) {  }
+         grid_2D(size_ty x_para, size_ty y_para) requires is_matrix<kind>
+                                                     : raw_data(x_para * y_para),
+                                                       data_span(raw_data.data(), y_para, x_para),
+                                                       data { y_para, x_para } { }
 
-         grid_2D(grid_2D&& other) noexcept : raw_data(std::move(other.raw_data)), 
-                                             data_span(raw_data.data(), other.rows_val, other.cols_val),
-                                             rows_val(std::exchange(other.rows_val, 0)), 
-                                             cols_val(std::exchange(other.cols_val, 0)) { }
+         grid_2D(grid_2D const& other)  requires is_grid<kind>
+                                                     : raw_data(other.raw_data), 
+                                                       data_span(raw_data.data(), std::get<0>(other), std::get<1>(other)),
+                                                       data { other.data } {  }
+
+         grid_2D(grid_2D const& other)  requires is_matrix<kind>
+                                           : raw_data(other.raw_data), 
+                                             data_span(raw_data.data(), std::get<1>(other), std::get<0>(other)),
+                                             data { other.data } {  }
+
+
+         grid_2D(grid_2D&& other) noexcept requires is_grid<kind>
+                                           : raw_data { std::move(other.raw_data) }, 
+                                             data_span(raw_data.data(), std::get<0>(other), std::get<1>(other)),
+                                             data { std::move(other.data) } { }
+
+         grid_2D(grid_2D&& other) noexcept requires is_matrix<kind>
+                                           : raw_data { std::move(other.raw_data) }, 
+                                             data_span(raw_data.data(), std::get<1>(other), std::get<0>(other)),
+                                             data { std::move(other.data) } { }
 
          virtual ~grid_2D() = default;
 
          grid_2D& operator = (grid_2D const& other) {
             if (this != &other) {
                raw_data  = other.raw_data;
-               rows_val  = other.rows_val;
-               cols_val  = other.cols_val;
-               data_span = mdspan_t(raw_data.data(), rows_val, cols_val);
+               data      = other.data;
+               if constexpr (kind = EKind::grid)
+                  data_span = mdspan_t(raw_data.data(), std::get<0>(data), std::get<1>(data));
+               else
+                  data_span = mdspan_t(raw_data.data(), std::get<1>(data), std::get<0>(data));
                }
             return *this;
             }
@@ -132,16 +252,18 @@ namespace own {
          grid_2D& operator = (grid_2D&& other) noexcept {
             if (this != &other) {
                raw_data  = std::move(other.raw_data);
-               rows_val  = std::exchange(other.rows_val, 0);
-               cols_val  = std::exchange(other.cols_val, 0);
-               data_span = mdspan_t(raw_data.data(), rows_val, cols_val);
+               data      = std::move(other.data);
+               if constexpr (kind = EKind::grid)
+                  data_span = mdspan_t(raw_data.data(), std::get<0>(data), std::get<1>(data));
+               else
+                  data_span = mdspan_t(raw_data.data(), std::get<1>(data), std::get<0>(data));
                }
             return *this;
             }
 
          grid_2D& operator = (std::string const& str)  requires std::is_convertible_v<char, ty> {
             auto convert_func = [](char val) { return static_cast<ty>(val); };
-            const size_t expected_size = rows_val * cols_val;
+            const size_ty expected_size = std::get<0>(data) * std::get<1>(data);;
             if (str.size() < expected_size) {
                throw std::invalid_argument("length of input string does not match grid_2D dimensions");
                }
@@ -169,7 +291,7 @@ namespace own {
          template <typename other_ty>
          grid_2D& operator = (std::vector<other_ty> const& vec) requires std::is_convertible_v<other_ty, ty> {
             auto convert_func = [](other_ty val) { return static_cast<ty>(val); };
-            const size_t expected_size = rows_val * cols_val;
+            const size_ty expected_size = std::get<0>(data) * std::get<1>(data);
             if (vec.size() < expected_size) {
                throw std::invalid_argument("length of input vector does not match grid_2D dimensions");
                }
@@ -195,82 +317,137 @@ namespace own {
             }
          
 
-         grid_2D& operator = (std::vector<ty>&& vec) requires std::is_same_v<char, ty> {
-            const size_t expected_size = rows_val * cols_val;
+         grid_2D& operator = (std::vector<ty>&& vec) {
+            const size_ty expected_size = std::get<0>(data) * std::get<1>(data);
             if (vec.size() != expected_size) {
                raw_data = std::move(vec);
                }
             return *this;
             }
 
-         bool Valid(size_t row, size_t col) const {
-            return (row < rows_val && col < cols_val ? true : false);
+         bool Valid(size_ty row, size_ty col) const requires is_grid<kind>  {
+            return (row < std::get<0>(data) && col < std::get<1>(data) ? true : false);
             }
 
-         bool Valid(coord_2D_type const& indices) const {
-            return Valid(indices.row(), indices.col());
+         bool Valid(size_ty x_, size_ty y_) const requires is_matrix<kind> {
+            return (x_ < std::get<1>(data) && y_ < std::get<0>(data) ? true : false);
             }
 
-         void CheckBounds(size_t row, size_t col) const {
-            if (row >= rows_val || col >= cols_val) {
+         bool Valid(coord_ty const& indices) const {
+            if constexpr (kind == EKind::grid)
+               return Valid(indices.row(), indices.col());
+            else
+               return Valid(indices.y(), indices.x());
+            }
+
+         void CheckBounds(size_ty row, size_ty col) const requires is_grid<kind> {
+            if (row >= std::get<0>(data) || col >= std::get<1>(data)) {
                throw std::out_of_range("index for grid2d out of bounds");
                }
             }
-         
-         ty& operator[](size_t row, size_t col) {
+
+         void CheckBounds(size_ty x_, size_ty y_) const requires is_matrix<kind> {
+            if (x_ >= std::get<1>(data) || y_ >= std::get<0>(data)) {
+               throw std::out_of_range("index for grid2d out of bounds");
+               }
+            }
+
+
+         ty& operator[](size_ty row, size_ty col) requires is_grid<kind> {
             CheckBounds(row, col);
             return data_span[row, col];
             }
 
-         ty const& operator[](size_t row, size_t col) const {
+         ty const& operator[](size_ty row, size_ty col) const requires is_grid<kind> {
             CheckBounds(row, col);
             return data_span[row, col];
             }
 
-         ty& operator[](coord_2D_type const& indices) {
-            auto const& [row, col] = indices;
-            CheckBounds(row, col);
-            return data_span[row, col];
+         ty& operator[](size_ty x_, size_ty y_) requires is_matrix<kind> {
+            CheckBounds(x_, y_);
+            return data_span[y_, x_];
             }
 
-         ty const& operator[](coord_2D_type const& indices) const {
-            auto const& [row, col] = indices;
-            CheckBounds(row, col);
-            return data_span[row, col];
+         ty const& operator[](size_ty x_, size_ty y_) const requires is_matrix<kind> {
+            CheckBounds(x_, y_);
+            return data_span[y_, x_];
             }
 
-         coord_2D_type GetCoordinates(const_iterator it) const {
-            if(it < cbegin()) {
+
+         ty& operator[](coord_ty const& indices) {
+            if constexpr (kind == EKind::grid) {
+               auto const& [row, col] = indices;
+               CheckBounds(row, col);
+               return data_span[row, col];
+               }
+            else {
+               auto const& [x_, y_] = indices;
+               CheckBounds(x_, y_);
+               return data_span[x_, y_];
+               }
+            }
+
+         ty const& operator[](coord_ty const& indices) const {
+            if constexpr (kind == EKind::grid) {
+               auto const& [row, col] = indices;
+               CheckBounds(row, col);
+               return data_span[row, col];
+               }
+            else {
+               auto const& [x_, y_] = indices;
+               CheckBounds(x_, y_);
+               return data_span[x_, y_];
+               }
+            }
+
+         coord_ty GetCoordinates(const_iterator it) const {
+            if(it < cbegin() || it == cend()) {
                throw std::invalid_argument("iterator for grid2d is out of bounds.");
                }
             if (size_t pos = std::distance(cbegin(), it); pos >= raw_data.size()) {
                throw std::out_of_range("position in grid_2D is out of bounds");
                }
-            else [[likely]] return { pos / cols_val, pos % cols_val };
+            else [[likely]] {
+               if constexpr (kind == EKind::grid)
+                  return { *this, pos / cols(), pos % cols() };
+               else 
+                  return { *this, pos % x_dim(), pos / x_dim() };
+               }
             }
 
-         ty& operator()(size_t row, size_t col)             { return data_span(row, col);  }
-         ty const& operator()(size_t row, size_t col) const { return data_span(row, col);  }
-         ty& operator()(coord_2D_type pos)                  { return data_span(std::get<0>(pos), std::get<1>(pos)); }
-         ty const& operator()(coord_2D_type pos) const      { return data_span(std::get<0>(pos), std::get<1>(pos)); }
-         
-         coord_2D_type operator()(size_t pos) const {
+         ty& operator()(size_t row, size_t col) requires is_grid<kind> { return data_span(row, col);  }
+         ty const& operator()(size_t row, size_t col) const requires is_grid<kind> { return data_span(row, col);  }
+         ty& operator()(size_t x_, size_t y_) requires is_matrix<kind> { return data_span(y_, x_); }
+         ty const& operator()(size_t x_, size_t y_) const requires is_matrix<kind> { return data_span(y_, x_); }
+
+         ty& operator()(coord_ty pos) requires is_grid<kind> { return data_span(std::get<0>(pos), std::get<1>(pos)); }
+         ty const& operator()(coord_ty pos) const requires is_grid<kind> { return data_span(std::get<0>(pos), std::get<1>(pos)); }
+         ty& operator()(coord_ty pos) requires is_matrix<kind> { return data_span(std::get<1>(pos), std::get<0>(pos)); }
+         ty const& operator()(coord_ty pos) const requires is_matrix<kind> { return data_span(std::get<1>(pos), std::get<0>(pos)); }
+
+         coord_ty operator()(size_t pos) const {
             if (pos >= raw_data.size()) {
                throw std::out_of_range("position in grid_2D is out of bounds");
                }
-            return { pos / cols_val, pos % cols_val };
+            else
+               if constexpr(kind == EKind::grid)
+                  return { *this, pos / cols(), pos % cols() };
+               else
+                  return { *this, pos / x_dim(), pos % x_dim() };
             }
          
          
-         void print(std::ostream& out) requires std::is_same_v<ty, char> {
-            for (size_t i = 0; i < rows(); ++i) {
-               for (size_t j = 0; j < cols(); ++j) std::print(out, "{}", (*this)[i, j]);
+         void print(std::ostream& out, size_t width) requires std::is_same_v<ty, char> {
+            for (size_t i = 0; i < std::get<0>(data); ++i) {
+               for (size_t j = 0; j < std::get<0>(data); ++j) std::print(out, "{:>{}}", (*this)[i, j], width);
                std::println(out, "");
                }
             }
 
-         size_t rows() const { return rows_val; }
-         size_t cols() const { return cols_val; }
+         size_t rows() const requires is_grid<kind> { return std::get<0>(data); }
+         size_t cols() const requires is_grid<kind> { return std::get<1>(data); }
+         size_t x_dim() const requires is_matrix<kind> { return std::get<1>(data); }
+         size_t y_dim() const requires is_matrix<kind> { return std::get<0>(data); }
 
          iterator       begin()        { return raw_data.begin(); }
          iterator       end()          { return raw_data.end(); }
@@ -286,12 +463,17 @@ namespace own {
       // -----------------------------------------------------------------------------------------------------
 
 
-      template <typename ty>
+      template <typename ty, EKind kind = EKind::grid>
       class grid2d_view {
+      template <bool>
+      friend class iterator_base;
       public:
+         using used_grid = grid_2D<ty, kind>;
 
          template <bool IsConst>
          class iterator_base {
+            template <typename ty, EKind kind>
+            friend class grid2d_view;
          private:
             using grid2d_ref = std::conditional_t<IsConst, grid2d_view const&, grid2d_view&>;
             grid2d_ref        grid;
@@ -304,6 +486,7 @@ namespace own {
             using pointer           = ty*;
             using reference         = ty&;
             using const_reference   = ty const&;
+            using coord_ty = typename grid_2D<ty, kind>::coord_ty;
 
             iterator_base(grid2d_ref owner, size_t index = 0) : grid(owner), current_index(index) {
                if (index > grid.path_way.size()) {
@@ -331,9 +514,18 @@ namespace own {
                }
 
             reference operator * () {
-               auto const& [x, y] = grid.path_way[current_index];
-               //std::println(std::cout, "----> {},{}  ({})", x, y, current_index);
-               return grid[x, y];
+               if constexpr (kind == EKind::grid) { 
+                  auto const& row = grid.path_way[current_index].row();
+                  auto const& col = grid.path_way[current_index].col();
+                  //std::println(std::cout, "----> {},{}  ({})", x, y, current_index);
+                  return grid[row, col];
+                  }
+               else {
+                  auto const& x_ = grid.path_way[current_index].x();
+                  auto const& y_ = grid.path_way[current_index].y();
+                  //std::println(std::cout, "----> {},{}  ({})", x, y, current_index);
+                  return grid[y_, x_];
+               }
                }
 
             const_reference operator * () const {
@@ -347,11 +539,13 @@ namespace own {
                return &grid[x, y];
                }
 
-            coord_2D_type get_coords() const {
-               auto const& [x, y] = grid.path_way[current_index];
+            
+            coord_ty get_coords() const {
+               //auto const& [x, y] = grid.path_way[current_index];
                //std::println(std::cout, "~~~~> {},{}  ({})", x, y, current_index);
                return grid.path_way[current_index];
                }
+            
 
             iterator_base& operator ++ () {
                ++current_index;
@@ -430,7 +624,7 @@ namespace own {
          using const_reference = const ty&;
          using size_type       = std::size_t;
 
-         grid2d_view(grid_2D<ty>& data, std::vector<coord_2D_type> const& coords) : data_grid(data), path_way(coords) {  }
+         grid2d_view(used_grid& data, std::vector<typename used_grid::coord_ty> const& coords) : data_grid(data), path_way(coords) {  }
          grid2d_view(grid2d_view const& other) : data_grid(other.data_grid), path_way(other.path_way) { }
          grid2d_view(grid2d_view&& other) noexcept : data_grid(std::move(other.data_grid)), path_way(std::move(other.path_way)) {  }
          ~grid2d_view() = default;
@@ -482,54 +676,57 @@ namespace own {
             return data_grid[row, col];
             }
 
-         ty& operator[](coord_2D_type const& indices) {
+         ty& operator[](used_grid::coord_ty const& indices) {
             return data_grid[indices];
             }
 
-         ty const& operator[](coord_2D_type const& indices) const {
+         ty const& operator[](used_grid::coord_ty const& indices) const {
             return data_grid[indices];
             }
 
       private:
-         grid_2D<ty>&                      data_grid;
-         std::vector<coord_2D_type> const& path_way;
+         used_grid&                           data_grid;
+         std::vector<typename used_grid::coord_ty> const& path_way;
       };
 
       
-      template <typename ty>
-      inline std::vector<std::vector<coord_2D_type>> find_horz_inner_paths(grid_2D<ty> const& grid) {
-         std::vector<std::vector<coord_2D_type>> results;
+      template <typename ty, EKind kind>
+      inline std::vector<std::vector<typename grid_2D<ty, kind>::coord_ty>> find_horz_inner_paths(grid_2D<ty, kind> const& grid) {
+         using coord_ty = typename grid_2D<ty, kind>::coord_ty;
+         std::vector<std::vector<coord_ty>> results;
 
          for(auto row_idx : std::views::iota(size_t { 1 }, grid.rows() - 1)) {
             results.emplace_back( std::views::zip(std::views::repeat(row_idx) | std::views::take(grid.cols()), 
                                                   std::views::iota(size_t { 1 }, grid.cols() - 1))
-                                                 | std::views::transform([](auto val) { return coord_2D_type(std::move(val)); })
+                                                 | std::views::transform([&grid](auto val) { return coord_ty(grid, std::move(val)); })
                                                  | std::ranges::to<std::vector>());
             }
          return results;
          }
 
-      template <typename ty>
-      inline std::vector<std::vector<coord_2D_type>> find_horz_paths(grid_2D<ty> const& grid) {
-         std::vector<std::vector<coord_2D_type>> results;
+      template <typename ty, EKind kind>
+      std::vector<std::vector<typename grid_2D<ty, kind>::coord_ty>> find_horz_paths(grid_2D<ty, kind> const& grid) {
+         using coord_ty = typename grid_2D<ty, kind>::coord_ty;
+         std::vector<std::vector<coord_ty>> results;
 
          for (auto row_idx : std::views::iota(size_t{ 0 }, grid.rows())) {
             results.emplace_back( std::views::zip(std::views::repeat(row_idx) | std::views::take(grid.cols()),
                                                   std::views::iota(size_t{ 0 }, grid.cols()))
-                                                | std::views::transform([](auto val) { return coord_2D_type(std::move(val)); })
+                                                | std::views::transform([&grid](auto val) {  return coord_ty(grid, std::move(val)); })
                                                 | std::ranges::to<std::vector>());
             }
          return results;
          }
 
-      template <typename ty>
-      inline std::vector<std::vector<coord_2D_type>> find_vert_paths(grid_2D<ty> const& grid) {
-         std::vector<std::vector<coord_2D_type>> results;
+      template <typename ty, EKind kind>
+      std::vector<std::vector<typename grid_2D<ty, kind>::coord_ty>> find_vert_paths(grid_2D<ty, kind> const& grid) {
+         using coord_ty = typename grid_2D<ty, kind>::coord_ty;
+         std::vector<std::vector<coord_ty>> results;
 
          for (auto col_idx : std::views::iota(size_t{ 0 }, grid.cols())) {
             results.emplace_back(std::views::zip(std::views::iota(size_t{ 0 }, grid.rows()),
                                                  std::views::repeat(col_idx) | std::views::take(grid.rows()))
-                                                | std::views::transform([](auto val) { return coord_2D_type(std::move(val)); })
+                                                | std::views::transform([&grid](auto val) {  return coord_ty(grid, std::move(val)); })
                                                 | std::ranges::to<std::vector>());
             }
          return results;
@@ -537,18 +734,30 @@ namespace own {
 
 
 
-      template <typename ty>
-      inline std::vector<std::vector<coord_2D_type>> find_all_paths(grid_2D<ty> const& grid) {
-         std::vector<std::vector<coord_2D_type>> results;
+      template <typename ty, EKind kind>
+      std::vector<std::vector<typename grid_2D<ty, kind>::coord_ty>> find_all_paths(grid_2D<ty, kind> const& grid) {
+         using coord_ty = typename grid_2D<ty, kind>::coord_ty;
+         std::vector<std::vector<coord_ty>> results;
 
-         for (auto& vec : find_horz_paths(grid)) { results.emplace_back(std::move(vec)); }
-         for (auto& vec : find_vert_paths(grid)) { results.emplace_back(std::move(vec)); }
+         for (auto row_idx : std::views::iota(size_t{ 0 }, grid.rows())) {
+            results.emplace_back( std::views::zip(std::views::repeat(row_idx) | std::views::take(grid.cols()),
+                                                  std::views::iota(size_t{ 0 }, grid.cols()))
+                                                | std::views::transform([&grid](auto val) {  return coord_ty(grid, std::move(val)); })
+                                                | std::ranges::to<std::vector>());
+            }
+         
+         for (auto col_idx : std::views::iota(size_t{ 0 }, grid.cols())) {
+            results.emplace_back(std::views::zip(std::views::iota(size_t{ 0 }, grid.rows()),
+                                                 std::views::repeat(col_idx) | std::views::take(grid.rows()))
+                                                | std::views::transform([&grid](auto val) {  return coord_ty(grid, std::move(val)); })
+                                                | std::ranges::to<std::vector>());
+            }
 
    
          for (auto row_idx : std::views::iota(size_t{ 0 }, grid.rows())) {
             results.emplace_back(std::views::zip(std::views::iota(row_idx, grid.rows()),
                                                  std::views::iota(size_t{ 0 }, grid.cols() - row_idx))
-                                                | std::views::transform([](auto val) { return coord_2D_type(std::move(val)); })
+                                                | std::views::transform([&grid](auto val) { return coord_ty(grid, std::move(val)); })
                                                 | std::ranges::to<std::vector>());
             } 
    
@@ -556,14 +765,14 @@ namespace own {
          for (auto col_idx : std::views::iota(size_t{ 1 }, grid.cols())) {
             results.emplace_back(std::views::zip(std::views::iota(size_t { 0 }, grid.rows()),
                                                  std::views::iota(col_idx, grid.cols()))
-                                                | std::views::transform([](auto val) { return coord_2D_type(std::move(val)); })
+                                                | std::views::transform([&grid](auto val) {  return coord_ty(grid, std::move(val)); })
                                                 | std::ranges::to<std::vector>());
             }
 
          for(auto col_idx : std::views::iota(size_t{ 1 }, grid.cols())) {
             auto coords = std::views::zip(std::views::iota(size_t { 0 }, grid.rows()),
                                           std::views::iota(size_t { 0 }, col_idx) | std::views::reverse)
-                                          | std::views::transform([](auto val) { return coord_2D_type(std::move(val)); })
+                                          | std::views::transform([&grid](auto val) {  return coord_ty(grid, std::move(val)); })
                                           | std::ranges::to<std::vector>();
             if (coords.size() > 1) results.emplace_back(coords);
             }
@@ -571,7 +780,7 @@ namespace own {
          for (auto row_idx : std::views::iota(size_t{ 0 }, grid.rows() - 1)) {
             auto coords = std::views::zip(std::views::iota(row_idx, grid.rows()),
                                           std::views::iota(size_t{ 0 }, grid.cols()) | std::views::reverse)
-                                          | std::views::transform([](auto val) { return coord_2D_type(std::move(val)); })
+                                          | std::views::transform([&grid](auto val) {  return coord_ty(grid, std::move(val)); })
                                           | std::ranges::to<std::vector>();
             results.emplace_back(coords);
             }
@@ -583,8 +792,9 @@ namespace own {
 
 }  // end of namespace
 
-template <>
-struct std::formatter<own::grid::coord_2D_type> : std::formatter<std::string_view> {
+/*
+template <typename ty>
+struct std::formatter<own::grid::grid_2D<typename ty, own::grid::EKind::grid>::coord_ty> : std::formatter<std::string_view> {
    std::string format_string;
 
    constexpr auto parse(std::format_parse_context& ctx) {
@@ -598,17 +808,24 @@ struct std::formatter<own::grid::coord_2D_type> : std::formatter<std::string_vie
       return pos; // returns the iterator to the last parsed character in the format string, in this case we just swallow everything
       }
 
-   auto format(own::grid::coord_2D_type const& val, std::format_context& ctx) const {
+   auto format(own::grid::coord_2D_type<kind> const& val, std::format_context& ctx) const {
       std::string temp;
 
-      size_t row_val = val.row(); // otherwise problems with make_format_args
-      size_t col_val = val.col();
+      size_t row_val = []() -> size_t {
+         if constexpr (kind == own::grid::EKind::grid) val.row();
+         else val.x();
+         }();
+      size_t col_val = []() -> size_t {
+         if constexpr (kind == own::grid::EKind::grid) val.col();
+         else val.y();
+         }(); 
+
       std::string fmt = std::format("( {0:}, {0:} )", format_string);
       std::vformat_to(std::back_inserter(temp), fmt, std::make_format_args(row_val, col_val));
       return std::formatter<std::string_view>::format(temp, ctx);
       }
 };
-
+*/
 
 
 namespace std::ranges {
@@ -636,26 +853,27 @@ namespace std::ranges {
       }
 } // end of std::ranges
 
+/*
 namespace std {
    template<>
-   struct tuple_size<own::grid::coord_2D_type> : std::integral_constant<size_t, 2> {};
+   struct tuple_size<typename own::grid::grid_2D::coord_ty> : std::integral_constant<size_t, 2> {};
 
    template<size_t N>
-   struct tuple_element<N, own::grid::coord_2D_type> {
+   struct tuple_element<N, own::grid::grid_2D<own::grid::EKind::grid>::coord_ty> {
       using type = size_t;
       };
 
    template<size_t N>
-   size_t const& get(own::grid::coord_2D_type const& obj) {
+   size_t const& get(own::grid::grid_2D<own::grid::EKind::grid>::coord_ty const& obj) {
       if constexpr (N == 0) return std::get<0>(obj.get_data());
       else if constexpr (N == 1) return std::get<1>(obj.get_data());
       }
    
    template<size_t N>
-   size_t& get(own::grid::coord_2D_type& obj) {
+   size_t& get(own::grid::grid_2D<own::grid::EKind::grid>::coord_ty& obj) {
       if constexpr (N == 0) return std::get<0>(obj.get_data());
       else if constexpr (N == 1) return std::get<1>(obj.get_data());
       }
 
 }
-
+*/

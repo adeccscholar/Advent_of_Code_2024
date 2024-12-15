@@ -17,6 +17,7 @@
 
 #include <type_traits>
 #include <concepts>
+#include <ranges>
 
 #include <mdspan>
 

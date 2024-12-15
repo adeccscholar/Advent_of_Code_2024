@@ -150,6 +150,13 @@
               </widget>
              </item>
              <item>
+              <widget class="QLabel" name="lblWebURLs">
+               <property name="text">
+                <string>lblWebURLs</string>
+               </property>
+              </widget>
+             </item>
+             <item>
               <widget class="QPushButton" name="btnOldURL">
                <property name="text">
                 <string>btnOldURL</string>

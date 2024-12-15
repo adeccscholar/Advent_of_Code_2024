@@ -1,9 +1,16 @@
 ﻿// Project: Solutions for Advent of Code 2024
 // file with the control data for process and common processes functions
 // author: Volker Hillmann
-// date:   05.12.20204, last change: 13.12.2024   
+// date:   05.12.20204, last change: 15.12.2024   
 // copyright © adecc Systemhaus GmbH 2024, All rights reserved.
 // This project is released under the MIT License.
+
+// todo for the rebuild
+// get_coords missing
+// formatter don't working, grid print missing
+// 8th Day, using of the new grid templates
+// 6th Day, problem with combination, and get_coords missing
+
 
 #include "processes_aoc2024.h"
 
@@ -24,10 +31,12 @@
 #include "Day_07.h" //  7th day : Bridge Repair         - both missions solved 
 #include "Day_08.h" //  8th day : Resonant Collinearity - first part in progress 
 #include "Day_09.h" //  9th day : Disk Fragmenter       - first part in progress 
-#include "Day_10.h" // 10th day : Hoof It               - implemention started
+#include "Day_10.h" // 10th day : Hoof It               - implementation started
 #include "Day_11.h" // 11th day : Plutonian Pebbles     - first mission solved
-#include "Day_12.h" // 12th day : Garden Groups         - implemention started
+#include "Day_12.h" // 12th day : Garden Groups         - implementation started
 #include "Day_13.h" // 13th day : Claw Contraption      - first part in progress
+#include "Day_14.h" // 14th day : Restroom Redoubt      - implementation started
+#include "Day_15.h" // 15th day : Warehouse Woes        - implementation started
 
 #include <iostream>
 #include <string_view>
@@ -66,9 +75,8 @@ TAOC2024Processes::cntrlDatas TAOC2024Processes::control = {
    { 11, {"11th day"s, "Plutonian Pebbles"s,     "https://adventofcode.com/2024/day/11"s, [](TMyForm& frm) { SetResult(frm, RiddleDay11(frm.GetText("memInput"))); },  statusRiddle::first_solved }},
    { 12, {"12th day"s, "Garden Groups"s,         "https://adventofcode.com/2024/day/12"s, [](TMyForm& frm) { SetResult(frm, RiddleDay12(frm.GetText("memInput"))); },  statusRiddle::prepared }},
    { 13, {"13th day"s, "Claw Contraption"s,      "https://adventofcode.com/2024/day/13"s, [](TMyForm& frm) { SetResult(frm, RiddleDay13(frm.GetLines("memInput"))); }, statusRiddle::prepared }},
-   //{ 13, {"13th day"s, ""s } }
-   //{ 14, {"14th day"s, ""s } }
-   //{ 15, {"15th day"s, ""s } }
+   { 14, {"14th day"s, "Restroom Redoubt"s,      "https://adventofcode.com/2024/day/14"s, [](TMyForm& frm) { SetResult(frm, RiddleDay14(frm.GetLines("memInput"))); }, statusRiddle::prepared }},
+   { 15, {"15th day"s, "Warehouse Woes"s,        "https://adventofcode.com/2024/day/15"s, [](TMyForm& frm) { SetResult(frm, RiddleDay15(frm.GetLines("memInput"))); }, statusRiddle::prepared }},
    //{ 16, {"16th day"s, ""s } }
    //{ 17, {"17th day"s, ""s } }
    //{ 18, {"18th day"s, ""s } }
@@ -91,10 +99,11 @@ void TAOC2024Processes::Init(TMyForm&& frm) {
    frm.SetLabel("lblRiddleBox"s,      "choose the daily task");
    frm.InitCheckBox("chkTestData",    "copy test data", false);
 
+   frm.SetButton("btnOldRiddles"s,    "solve task for choosen day"s);
+   frm.SetButton("btnPasteData"s,     "paste data from clipboard"s);
+   frm.SetLabel("lblWebURLs"s,        "resources from the web"s);
    frm.SetButton("btnOldURL"s,        "description for choosen day"s);
    frm.SetButton("btnInputData"s,     "input for the choosen day"s);
-   frm.SetButton("btnPasteData"s,     "paste data from clipboard"s);
-   frm.SetButton("btnOldRiddles"s,    "solve task for choosen day"s);
 
    frm.SetGroupBox("gbxResults"s,     "results"s);
    frm.SetEdit("edtResult_1"s,        ""s);

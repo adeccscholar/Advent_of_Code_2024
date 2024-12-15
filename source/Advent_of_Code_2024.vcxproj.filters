@@ -96,6 +96,12 @@
     <ClInclude Include="Day_13.h">
       <Filter>Header - Days</Filter>
     </ClInclude>
+    <ClInclude Include="Day_14.h">
+      <Filter>Header - Days</Filter>
+    </ClInclude>
+    <ClInclude Include="Day_15.h">
+      <Filter>Header - Days</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <Filter Include="Header">
