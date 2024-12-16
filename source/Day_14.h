@@ -19,6 +19,8 @@
 
 using namespace std::string_literals;
 
+namespace nsDay14 {
+
 bool checkLine(std::string_view line) {
    //static std::regex regex(R"(^p=([0]|([1-9]\d{0,3})),([0]|([1-9]\d{0,3})) v=(-?[0]|([1-9]\d{0,3})),(-?[0]|([1-9]\d{0,3}|0))$)");
 
@@ -61,4 +63,6 @@ std::pair<std::string, std::string> RiddleDay14(range_ty const& values) {
    std::println(std::cout, "the result for the 2nd part is {}", result_2);
 
    return { to_String(result_1), to_String(result_2) };
-}
+   }
+
+} // end of namespace nsDay14

@@ -1,15 +1,11 @@
 ﻿// Project: Solutions for Advent of Code 2024
 // file with the control data for process and common processes functions
 // author: Volker Hillmann
-// date:   05.12.20204, last change: 15.12.2024   
+// date:   05.12.20204, last change: 16.12.2024   
 // copyright © adecc Systemhaus GmbH 2024, All rights reserved.
 // This project is released under the MIT License.
 
-// todo for the rebuild
-// get_coords missing
 // formatter don't working, grid print missing
-// 8th Day, using of the new grid templates
-// 6th Day, problem with combination, and get_coords missing
 
 
 #include "processes_aoc2024.h"
@@ -37,6 +33,7 @@
 #include "Day_13.h" // 13th day : Claw Contraption      - first part in progress
 #include "Day_14.h" // 14th day : Restroom Redoubt      - implementation started
 #include "Day_15.h" // 15th day : Warehouse Woes        - implementation started
+#include "Day_16.h" // 16th day : Reindeer Maze         - implementation started
 
 #include <iostream>
 #include <string_view>
@@ -62,21 +59,22 @@ std::pair<std::string, std::string> RiddleDayxx(range_ty const& values) {
 
 
 TAOC2024Processes::cntrlDatas TAOC2024Processes::control = {
-   {  1, {" 1st day"s, "Historian Hysteria"s,    "https://adventofcode.com/2024/day/1"s,  [](TMyForm& frm) { SetResult(frm, RiddleDay1 (frm.GetLines("memInput"))); }, statusRiddle::both_solved }},
-   {  2, {" 2nd day"s, "Red-Nosed Reports"s,     "https://adventofcode.com/2024/day/2"s,  [](TMyForm& frm) { SetResult(frm, RiddleDay2 (frm.GetLines("memInput"))); }, statusRiddle::both_solved }},
-   {  3, {" 3rd day"s, "Mull It Over"s,          "https://adventofcode.com/2024/day/3"s,  [](TMyForm& frm) { SetResult(frm, RiddleDay3 (frm.GetLines("memInput"))); }, statusRiddle::both_solved }},
-   {  4, {" 4th day"s, "Ceres Search"s,          "https://adventofcode.com/2024/day/4"s,  [](TMyForm& frm) { SetResult(frm, RiddleDay4 (frm.GetText("memInput"s))); }, statusRiddle::both_solved }},
-   {  5, {" 5th day"s, "Print Queue"s,           "https://adventofcode.com/2024/day/5"s,  [](TMyForm& frm) { SetResult(frm, RiddleDay5 (frm)); },                      statusRiddle::both_solved }},
-   {  6, {" 6th day"s, "Guard Gallivant"s,       "https://adventofcode.com/2024/day/6"s,  [](TMyForm& frm) { SetResult(frm, RiddleDay6 (frm.GetText("memInput"))); },  statusRiddle::first_solved }},
-   {  7, {" 7th day"s, "Bridge Repair"s,         "https://adventofcode.com/2024/day/7"s,  [](TMyForm& frm) { SetResult(frm, RiddleDay7 (frm.GetLines("memInput"))); }, statusRiddle::both_solved }},
-   {  8, {" 8th day"s, "Resonant Collinearity"s, "https://adventofcode.com/2024/day/8"s,  [](TMyForm& frm) { SetResult(frm, RiddleDay8 (frm.GetText("memInput"))); },  statusRiddle::first_in_progress }},
-   {  9, {" 9th day"s, "Disk Fragmenter"s,       "https://adventofcode.com/2024/day/9"s,  [](TMyForm& frm) { SetResult(frm, RiddleDay9 (frm.GetText("memInput"))); },  statusRiddle::first_solved }},
-   { 10, {"10th day"s, "Hoof It"s,               "https://adventofcode.com/2024/day/10"s, [](TMyForm& frm) { SetResult(frm, RiddleDay10(frm.GetText("memInput"))); },  statusRiddle::prepared }},
-   { 11, {"11th day"s, "Plutonian Pebbles"s,     "https://adventofcode.com/2024/day/11"s, [](TMyForm& frm) { SetResult(frm, RiddleDay11(frm.GetText("memInput"))); },  statusRiddle::first_solved }},
-   { 12, {"12th day"s, "Garden Groups"s,         "https://adventofcode.com/2024/day/12"s, [](TMyForm& frm) { SetResult(frm, RiddleDay12(frm.GetText("memInput"))); },  statusRiddle::prepared }},
-   { 13, {"13th day"s, "Claw Contraption"s,      "https://adventofcode.com/2024/day/13"s, [](TMyForm& frm) { SetResult(frm, RiddleDay13(frm.GetLines("memInput"))); }, statusRiddle::prepared }},
-   { 14, {"14th day"s, "Restroom Redoubt"s,      "https://adventofcode.com/2024/day/14"s, [](TMyForm& frm) { SetResult(frm, RiddleDay14(frm.GetLines("memInput"))); }, statusRiddle::prepared }},
+   {  1, {" 1st day"s, "Historian Hysteria"s,    "https://adventofcode.com/2024/day/1"s,  [](TMyForm& frm) { SetResult(frm, RiddleDay1 (frm.GetLines("memInput"))); },          statusRiddle::both_solved }},
+   {  2, {" 2nd day"s, "Red-Nosed Reports"s,     "https://adventofcode.com/2024/day/2"s,  [](TMyForm& frm) { SetResult(frm, RiddleDay2 (frm.GetLines("memInput"))); },          statusRiddle::both_solved }},
+   {  3, {" 3rd day"s, "Mull It Over"s,          "https://adventofcode.com/2024/day/3"s,  [](TMyForm& frm) { SetResult(frm, RiddleDay3 (frm.GetLines("memInput"))); },          statusRiddle::both_solved }},
+   {  4, {" 4th day"s, "Ceres Search"s,          "https://adventofcode.com/2024/day/4"s,  [](TMyForm& frm) { SetResult(frm, RiddleDay4 (frm.GetText("memInput"s))); },          statusRiddle::both_solved }},
+   {  5, {" 5th day"s, "Print Queue"s,           "https://adventofcode.com/2024/day/5"s,  [](TMyForm& frm) { SetResult(frm, RiddleDay5 (frm)); },                               statusRiddle::both_solved }},
+   {  6, {" 6th day"s, "Guard Gallivant"s,       "https://adventofcode.com/2024/day/6"s,  [](TMyForm& frm) { SetResult(frm, nsDay06::RiddleDay6 (frm.GetText("memInput"))); },  statusRiddle::first_solved }},
+   {  7, {" 7th day"s, "Bridge Repair"s,         "https://adventofcode.com/2024/day/7"s,  [](TMyForm& frm) { SetResult(frm, nsDay07::RiddleDay7 (frm.GetLines("memInput"))); }, statusRiddle::both_solved }},
+   {  8, {" 8th day"s, "Resonant Collinearity"s, "https://adventofcode.com/2024/day/8"s,  [](TMyForm& frm) { SetResult(frm, nsDay08::RiddleDay8 (frm.GetText("memInput"))); },  statusRiddle::first_solved }},
+   {  9, {" 9th day"s, "Disk Fragmenter"s,       "https://adventofcode.com/2024/day/9"s,  [](TMyForm& frm) { SetResult(frm, nsDay09::RiddleDay9 (frm.GetText("memInput"))); },  statusRiddle::first_solved }},
+   { 10, {"10th day"s, "Hoof It"s,               "https://adventofcode.com/2024/day/10"s, [](TMyForm& frm) { SetResult(frm, RiddleDay10(frm.GetText("memInput"))); },           statusRiddle::prepared }},
+   { 11, {"11th day"s, "Plutonian Pebbles"s,     "https://adventofcode.com/2024/day/11"s, [](TMyForm& frm) { SetResult(frm, nsDay11::RiddleDay11(frm.GetText("memInput"))); },  statusRiddle::first_solved }},
+   { 12, {"12th day"s, "Garden Groups"s,         "https://adventofcode.com/2024/day/12"s, [](TMyForm& frm) { SetResult(frm, nsDay12::RiddleDay12(frm.GetText("memInput"))); },  statusRiddle::first_solved }},
+   { 13, {"13th day"s, "Claw Contraption"s,      "https://adventofcode.com/2024/day/13"s, [](TMyForm& frm) { SetResult(frm, nsDay13::RiddleDay13(frm.GetLines("memInput"))); }, statusRiddle::prepared }},
+   { 14, {"14th day"s, "Restroom Redoubt"s,      "https://adventofcode.com/2024/day/14"s, [](TMyForm& frm) { SetResult(frm, nsDay14::RiddleDay14(frm.GetLines("memInput"))); }, statusRiddle::prepared }},
    { 15, {"15th day"s, "Warehouse Woes"s,        "https://adventofcode.com/2024/day/15"s, [](TMyForm& frm) { SetResult(frm, RiddleDay15(frm.GetLines("memInput"))); }, statusRiddle::prepared }},
+   { 16, {"16th day"s, "Reindeer Maze"s,         "https://adventofcode.com/2024/day/16"s, [](TMyForm& frm) { SetResult(frm, nsDay16::RiddleDay16(frm.GetText("memInput"))); },  statusRiddle::prepared }},
    //{ 16, {"16th day"s, ""s } }
    //{ 17, {"17th day"s, ""s } }
    //{ 18, {"18th day"s, ""s } }

@@ -15,6 +15,7 @@
 #include <utility>
 #include <ranges>
 
+namespace nsDay09 {
 
 inline std::pair<std::string, std::string> RiddleDay9(std::string&& text) {
    auto values = text | std::views::filter([](char c) { return c >= '0' && c <= '9'; })
@@ -64,3 +65,5 @@ inline std::pair<std::string, std::string> RiddleDay9(std::string&& text) {
    size_t result_2 = 0;
    return { to_String(result_1), to_String(result_2) };
    }
+
+} // end of namespace nsDay09

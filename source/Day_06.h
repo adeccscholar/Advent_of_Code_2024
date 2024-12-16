@@ -23,6 +23,8 @@
 #include <ranges>
 #include <print>
 
+namespace nsDay06 {
+
 enum class EDirections : char {
    upward = '^', right = '>', downward = 'v', left = '<'
   };
@@ -242,3 +244,5 @@ inline std::pair<std::string, std::string> RiddleDay6(std::string&& text) { // r
    std::println(std::cout, "the result for the 1st part is {}", result_1);
    return { to_String(result_1), to_String(result_2) };
    }
+
+} // end of namespace nsDay06

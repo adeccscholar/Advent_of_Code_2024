@@ -17,6 +17,8 @@
 #include <ranges>
 #include <print>
 
+namespace nsDay07 {
+
 template <my_integral_ty ty, typename func_ty>
 bool recursion_func_1(std::span<ty> values, ty res, func_ty&& func, ty acc) {
    return values.empty() ? acc == res :
@@ -57,3 +59,4 @@ std::pair<std::string, std::string> RiddleDay7(range_ty const& values) {
    return { to_String(result_1), to_String(result_2) };
    }
      
+} // end of namespace nsDay07

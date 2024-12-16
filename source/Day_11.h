@@ -20,6 +20,8 @@
 #include <ranges>
 #include <print>
 
+namespace nsDay11 {
+
 template <my_integral_ty ty>
 auto parse_numbers(std::string_view input) {
    auto is_not_space = [](char c) { return !std::isspace(c); };
@@ -146,3 +148,5 @@ inline std::pair<std::string, std::string> RiddleDay11(std::string&& text) {
    std::println(std::cout, "the result for the 2nd part is {}", result_2);
    return { to_String(result_1), to_String(result_2) };
    }
+
+} // end of namespace nsDay11

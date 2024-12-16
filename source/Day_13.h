@@ -17,6 +17,8 @@
 #include <ranges>
 #include <print>
 
+namespace nsDay13 {
+
 template <my_integral_ty ty>
 std::tuple<ty, ty, ty> extended_gcd(ty a, ty b) {
    ty s = 0, old_s = 1;
@@ -95,3 +97,5 @@ std::pair<std::string, std::string> RiddleDay13(range_ty const& values) {
 
    return { to_String(result_1), to_String(result_2) };
    }
+
+} // end of namespace nsDay13

@@ -45,6 +45,7 @@ namespace own {
          template <typename ty, EKind kind>
          friend class grid2d_view;
       public:
+         using value_type = ty;
          using mdspan2d_t = std::mdspan<ty, std::dextents<size_ty, 2>>;
          using iterator = typename std::vector<ty>::iterator;
          using const_iterator = typename std::vector<ty>::const_iterator;
@@ -54,7 +55,7 @@ namespace own {
             friend class grid_2D;
             friend void swap(coord_ty& lhs, coord_ty& rhs) noexcept { std::swap(lhs.get_data, rhs.get_data); }
 
-         private:
+         public:
 
             class distance_ty {
                friend void swap(distance_ty& lhs, distance_ty& rhs) noexcept { std::swap(lhs.data, rhs.data);  }
@@ -67,6 +68,7 @@ namespace own {
                distance_ty(distance_ty&& other) noexcept : data { std::move(other.data) } { }
                distance_ty(int_ty row, int_ty col) requires is_grid<kind> : data { row, col } { }
                distance_ty(int_ty x_val, int_ty y_val) requires is_matrix<kind> : data{ y_val, x_val } {}
+               distance_ty(std::pair<int_ty, int_ty> const& other) : data { other.first, other.second } {}
                distance_ty(data_ty const& values) : data { values } { }
                distance_ty(data_ty && values) : data {  std::move(values) } {}
                ~distance_ty() = default;
@@ -117,7 +119,10 @@ namespace own {
 
                operator data_ty& () { return data;  }
                operator data_ty const& () const { return data; }
+
+
             };
+         private:
 
             grid_2D const& grid;
          public:
@@ -130,7 +135,7 @@ namespace own {
             coord_ty(coord_ty&& other) noexcept : grid { other.grid }, data { std::move(other.data) } {}
             coord_ty(grid_2D const& parent, data_ty const& other) : grid{ parent }, data { other } {}
             coord_ty(grid_2D const& parent, data_ty&& other) noexcept : grid{ parent }, data { std::move(other) } {}
-            coord_ty(grid_2D const& parent, size_ty r, size_ty c) requires is_grid<kind> : grid{ parent }, data { r, c } {}
+            coord_ty(grid_2D const& parent, size_ty row, size_ty col) requires is_grid<kind> : grid{ parent }, data { row, col } {}
             coord_ty(grid_2D const& parent, size_ty x_val, size_ty y_val) requires is_matrix<kind> : grid{ parent }, data{ y_val, x_val } {}
             virtual ~coord_ty() = default;
 
@@ -157,26 +162,88 @@ namespace own {
                return *this;
                }
 
-            auto operator <=> (coord_ty const& rhs) const = default;
+            auto operator <=> (coord_ty const& rhs) const {
+               return data <=> rhs.data;
+               }
 
             bool operator == (coord_ty const& rhs) const {
                return data == rhs.data;
                }
 
+            bool operator != (coord_ty const& rhs) const {
+               return data != rhs.data;
+               }
+
+            bool operator < (coord_ty const& rhs) const {
+               return data < rhs.data;
+               }
+
+            // std::pair<coord_ty, distance_ty>
             std::expected<coord_ty, error_ty> operator + (distance_ty const& other) const {
-               auto const& [delta_row, delta_col] = other;
-               auto val1 = static_cast<int64_t>(row()) + delta_row;
-               auto val2 = static_cast<int64_t>(col()) + delta_col;
-               if (val1 < 0 || val2 < 0) return { };
-               else return { { static_cast<size_t>(val1), static_cast<size_t>(val2) } };
+               if constexpr (is_grid<kind>) {
+                  auto const& [delta_row, delta_col] = static_cast<distance_ty::data_ty const&>(other);
+                  auto new_row = static_cast<int_ty>(row()) + delta_row;
+                  auto new_col = static_cast<int_ty>(col()) + delta_col;
+                  if (new_row < 0 || new_row >= static_cast<int_ty>(grid.rows()) || 
+                      new_col < 0 || new_col >= static_cast<int_ty>(grid.cols())) [[unlikely]] {
+                     std::pair<int_ty, int_ty> rest = { 0, 0 };
+                     if (new_row < 0) { 
+                        rest.first = -new_row; // error
+                        new_row = 0; 
+                        }                                           
+                     else if(new_row >= static_cast<int_ty>(grid.rows())) {
+                        rest.first = new_row - static_cast<int_ty>((grid.rows() - 1));
+                        new_row = static_cast<int_ty>(grid.rows() - 1);
+                        }
+                     if (new_col < 0) { 
+                        rest.second = -new_col; // error
+                        new_col = 0; 
+                        }                                         
+                     else if(new_col >= static_cast<int_ty>(grid.cols())) {
+                        rest.second = new_col - static_cast<int_ty>((grid.cols() - 1));
+                        new_col = static_cast<int_ty>(grid.cols() - 1);
+                        }
+                     return std::unexpected(error_ty { { grid, static_cast<size_ty>(new_row), 
+                                                         static_cast<size_ty>(new_col) },
+                                                rest });
+                     }
+                  else return coord_ty { grid, static_cast<size_t>(new_row), static_cast<size_t>(new_col) };
+                  }
+               else {
+                  auto const& [delta_x, delta_y] = static_cast<distance_ty::data_ty const&>(other);
+                  auto new_x = static_cast<int64_t>(x()) + delta_x;
+                  auto new_y = static_cast<int64_t>(y()) + delta_y;
+                  if (new_x < 0 || new_x >= static_cast<int_ty>(grid.x_dim()) || 
+                      new_y < 0 || new_y >= static_cast<int_ty>(grid.y_dim())) [[unlikely]] {
+                     std::pair<int_ty, int_ty> rest = { 0, 0 };
+                     if (new_x < 0) { 
+                        rest.first = -new_x; 
+                        new_x = 0; 
+                        }                                           
+                     else if(new_x >= static_cast<int_ty>(grid.x_dim())) {           
+                        rest.first = new_x - static_cast<int_ty>((grid.x_dim() - 1));
+                        new_x = static_cast<int_ty>(grid.x_dim() - 1);
+                        }
+                     if (new_y < 0) { 
+                        rest.second = -new_y; 
+                        new_y = 0; 
+                        }                                         
+                     else if(new_y >= static_cast<int_ty>(grid.y_dim())) {
+                        rest.second = new_y - static_cast<int_ty>((grid.y_dim() - 1));
+                        new_y = static_cast<int_ty>(grid.y_dim() - 1);
+                        }
+                     return std::unexpected( error_ty { { grid, static_cast<size_ty>(new_x), 
+                                                          static_cast<size_ty>(new_y) },
+                                                          rest });
+                     }
+                  else return coord_ty { grid, static_cast<size_t>(new_x), static_cast<size_t>(new_y) };
+                  }               
                }
 
             std::expected<coord_ty, error_ty> operator - (distance_ty const& other) const {
-               auto const& [first, second] = other;
-               auto val1 = static_cast<int64_t>(row()) - first;
-               auto val2 = static_cast<int64_t>(col()) - second;
-               if (val1 < 0 || val2 < 0) return { };
-               else return { { static_cast<size_t>(val1), static_cast<size_t>(val2) } };
+               auto const& [delta_first, delta_second] = static_cast<distance_ty::data_ty const&>(other);
+               distance_ty operand = { -delta_first, -delta_second };
+               return *this + operand;
                }
 
 
@@ -376,7 +443,7 @@ namespace own {
 
          ty& operator[](coord_ty const& indices) {
             if constexpr (kind == EKind::grid) {
-               auto const& [row, col] = indices;
+               size_ty row = indices.row(), col = indices.col();
                CheckBounds(row, col);
                return data_span[row, col];
                }
@@ -389,7 +456,7 @@ namespace own {
 
          ty const& operator[](coord_ty const& indices) const {
             if constexpr (kind == EKind::grid) {
-               auto const& [row, col] = indices;
+               size_ty row = indices.row(), col = indices.col();
                CheckBounds(row, col);
                return data_span[row, col];
                }
@@ -398,6 +465,11 @@ namespace own {
                CheckBounds(x_, y_);
                return data_span[x_, y_];
                }
+            }
+
+         coord_ty GetCoordinates(size_ty first, size_ty second) const {
+            CheckBounds(first, second);
+            return { *this, first, second };
             }
 
          coord_ty GetCoordinates(const_iterator it) const {
@@ -459,6 +531,21 @@ namespace own {
          const_iterator cend() const   { return raw_data.cend(); }
 
       };
+
+
+      template <typename ty>
+      concept my_grid_ty = requires {
+           typename ty::value_type;
+           typename ty::mdspan2d_t;
+           typename ty::iterator;
+           typename ty::const_iterator;
+           typename ty::coord_ty;
+           typename ty::coord_ty::distance_ty;
+         }  &&
+           std::is_same_v<typename ty::iterator, typename std::vector<typename ty::value_type>::iterator> &&
+           std::is_same_v<typename ty::const_iterator, typename std::vector<typename ty::value_type>::const_iterator> &&
+           std::is_same_v<typename ty::mdspan2d_t, std::mdspan<typename ty::value_type, std::dextents<size_t, 2>>>;
+
 
       // -----------------------------------------------------------------------------------------------------
 
