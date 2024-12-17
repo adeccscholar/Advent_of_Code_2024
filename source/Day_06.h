@@ -29,7 +29,7 @@ enum class EDirections : char {
    upward = '^', right = '>', downward = 'v', left = '<'
   };
 
-template <typename grid_ty>
+template <own::grid::my_grid_ty grid_ty>
 bool is_rectangle(std::array<std::unique_ptr<typename grid_ty::coord_ty>, 4> const& points) {
    std::array<size_t, 4> rows, cols;
    for (size_t i = 0; i < 4; ++i) {
@@ -66,7 +66,7 @@ bool next_combination(std::array<ty, SIZE>& indices, size_t n) {
    return false;
    }
 
-template <typename grid_ty, size_t SIZE>
+template <own::grid::my_grid_ty grid_ty, size_t SIZE>
 std::vector<std::array<std::unique_ptr<typename grid_ty::coord_ty>, SIZE>> combination(grid_ty const& grid, std::span<typename grid_ty::coord_ty> values) {
    std::vector<std::array<std::unique_ptr<typename grid_ty::coord_ty>, SIZE>> result;
    if (values.size() < SIZE) return result;
@@ -85,8 +85,7 @@ std::vector<std::array<std::unique_ptr<typename grid_ty::coord_ty>, SIZE>> combi
    return result;
    }
 
-//template <typename Iter_ty> // own::grid::grid2d_view<char>::iterator
-template <typename grid_ty>
+template <own::grid::my_grid_ty grid_ty>
 void step_func(typename grid_ty::coord_ty const& coords,
                std::vector<typename grid_ty::coord_ty>& edges,
                std::vector<typename grid_ty::coord_ty>& path) {
@@ -98,8 +97,7 @@ void step_func(typename grid_ty::coord_ty const& coords,
    else path.emplace_back(coords);
    }
 
-//template <typename Iter_ty> // std::reverse_iterator<own::grid::grid2d_view<char>::iterator>
-template <typename grid_ty>
+template <own::grid::my_grid_ty grid_ty>
 void step_rev_func(typename grid_ty::coord_ty const& coords,
                    std::vector<typename grid_ty::coord_ty>& edges,
                    std::vector<typename grid_ty::coord_ty>& path) {   
@@ -113,9 +111,8 @@ void step_rev_func(typename grid_ty::coord_ty const& coords,
 
 const size_t UseLogLevel = 0;
 
-//template <std::ranges::input_range range_ty>
 template <size_t LogLevel = UseLogLevel>
-inline std::pair<std::string, std::string> RiddleDay6(std::string&& text) { // range_ty const& values
+inline std::pair<std::string, std::string> RiddleDay6(std::string&& text) { 
    const auto rows = std::ranges::count(text, '\n');
    const auto cols = text.size() / std::ranges::count(text, '\n') - 1;
    const own::grid::EKind grid_kind = own::grid::EKind::grid;
@@ -147,7 +144,7 @@ inline std::pair<std::string, std::string> RiddleDay6(std::string&& text) { // r
    using move_ret_type = std::tuple<size_t, size_t, bool>;
    std::map<EDirections, std::function<move_ret_type(size_t row, size_t col)>> moves_func = {
       { EDirections::upward, [&grid, &vertical, &edges, &path](size_t row, size_t col) -> move_ret_type {
-              own::grid::grid2d_view<char, own::grid::EKind::grid> view(grid, vertical[col]);
+              grid_ty::path_view view(grid, vertical[col]);
               auto start = view.rpos(row);
               if (auto it = std::find(start, view.rend(), '#'); it != view.rend()) {
                  for (auto iter = start; iter != it; ++iter) {
@@ -165,7 +162,7 @@ inline std::pair<std::string, std::string> RiddleDay6(std::string&& text) { // r
                  }
               }},
       { EDirections::right, [&grid, &horizontal, &edges, &path](size_t row, size_t col) -> move_ret_type {
-              own::grid::grid2d_view<char> view(grid, horizontal[row]);
+              grid_ty::path_view view(grid, horizontal[row]);
               auto start = view.pos(col);
               if (auto it = std::find(start, view.end(), '#'); it != view.end()) {
                  for (auto iter = start + 1; iter != it; ++iter)  { step_func<grid_ty>(iter.get_coords(), edges, path); };
@@ -179,7 +176,7 @@ inline std::pair<std::string, std::string> RiddleDay6(std::string&& text) { // r
                  }
               }},
       { EDirections::downward, [&grid, &vertical, &edges, &path](size_t row, size_t col) -> move_ret_type {
-              own::grid::grid2d_view<char> view(grid, vertical[col]);
+              grid_ty::path_view view(grid, vertical[col]);
               auto start = view.pos(row);
               if (auto it = std::find(start, view.end(), '#'); it != view.end()) {
                  for (auto iter = start + 1; iter != it; ++iter)  { step_func<grid_ty>(iter.get_coords(), edges, path); }
@@ -193,7 +190,7 @@ inline std::pair<std::string, std::string> RiddleDay6(std::string&& text) { // r
                  }
               }},
       { EDirections::left, [&grid, &horizontal, &edges, &path](size_t row, size_t col) -> move_ret_type {
-              own::grid::grid2d_view<char> view(grid, horizontal[row]);
+              grid_ty::path_view view(grid, horizontal[row]);
               auto start = view.rpos(col);
               if (auto it = std::find(start, view.rend(), '#'); it != view.rend()) {
                  for (auto iter = start; iter != it; ++iter) { step_rev_func<grid_ty>((iter.base() - 1).get_coords(), edges, path); };

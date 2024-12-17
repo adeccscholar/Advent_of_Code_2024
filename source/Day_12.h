@@ -24,7 +24,7 @@ using coord_ty = typename grid_ty::coord_ty;
 using area_ty  = std::vector<typename grid_ty::coord_ty>;
 using areas_ty = std::vector<area_ty>;
 
-
+template <own::grid::my_grid_ty grid_ty>
 void dfs(grid_ty const& grid, int32_t row, int32_t col, char value, area_ty& component, std::vector<bool>& visited) {
    if (row < 0 || row >= grid.rows() || col < 0 || col >= grid.cols() ||
        visited[row * grid.cols() + col] || grid[row, col] != value) {
@@ -41,6 +41,7 @@ void dfs(grid_ty const& grid, int32_t row, int32_t col, char value, area_ty& com
    }
 
 // 4 - connected region labeling mit dfs
+template <own::grid::my_grid_ty grid_ty>
 areas_ty find_connected_4_components(grid_ty const& grid) {
    areas_ty components;
    std::vector<bool> visited(grid.rows() * grid.cols(), false);

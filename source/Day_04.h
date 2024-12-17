@@ -44,7 +44,7 @@ inline std::pair<std::string, std::string> RiddleDay4(std::string&& text) {
       auto searcher = std::boyer_moore_searcher(patter.begin(), patter.end());
       std::for_each(std::execution::par, pathways.begin(), pathways.end(),
                            [&vault, &searcher, &result_1, &patter](auto const& pathway) {
-            own::grid::grid2d_view<char> grid(vault, pathway);
+            grid_ty::path_view grid(vault, pathway);
 
             size_t pos = 0u;
             auto result = std::search(grid.begin() + pos, grid.end(), searcher);

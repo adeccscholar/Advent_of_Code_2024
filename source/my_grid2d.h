@@ -8,12 +8,26 @@
 // copyright © adecc Systemhaus GmbH 2024, All rights reserved.
 // This project is released under the MIT License.
 
+/*
+grid_2d connects the C++ type std::mdspan with a std::vector, and special vectors with horizontal, 
+vertical, and diagonal 'slices' to use standard algorithms and std::searcher for searching within 
+a data grid. Using of the std::vector::iterator to use algorithmen with the new type and implementing 
+a grid_2d::path_view class with iterators along the 'slices' or support moves along the 'slices'.
+It demonstrates how different containers can be used together and how their properties complement 
+each other. It also demonstrates how to extend iterators. A custom class grid_2d::coord_ty is used 
+for coordinates and mathematical operators.
+*/
+
+#include <my_common_tools.h>
 
 #include <string>
 #include <vector>
 #include <array>
 #include <iterator>
 #include <stdexcept>
+
+#include <limits>
+#include <typeinfo>
 
 #include <type_traits>
 #include <ranges>   // C++20
@@ -29,9 +43,6 @@ namespace own {
 
    namespace grid {
 
-      using int_ty  = int64_t;
-      using size_ty = uint64_t;
-
       enum class EKind : uint32_t { grid, matrix };
 
       template <EKind kind>
@@ -40,18 +51,76 @@ namespace own {
       template <EKind kind>
       concept is_matrix = kind == EKind::matrix;
 
-      template <typename ty = char, EKind kind = EKind::grid>
+      // class grid_2d with the implementation of a 2 dimensial grid
+      template <typename ty = char, EKind kind = EKind::grid, my_integral_ty _size_ty = uint64_t, my_integral_ty _int_ty = int64_t>
+         requires (std::is_unsigned_v<_size_ty>&& std::is_signed_v<_int_ty>)
       class grid_2D {
-         template <typename ty, EKind kind>
-         friend class grid2d_view;
+         //template <typename ty, EKind kind>
+         friend class path_view;
       public:
+         using size_ty    = _size_ty;
+         using int_ty     = _int_ty;
          using value_type = ty;
          using mdspan2d_t = std::mdspan<ty, std::dextents<size_ty, 2>>;
          using iterator = typename std::vector<ty>::iterator;
          using const_iterator = typename std::vector<ty>::const_iterator;
 
+         [[nodiscard]] static constexpr int_ty to_int(my_integral_ty auto value) {
+            using used_type = decltype(value);
+            if constexpr (std::is_same_v<used_type, int_ty>) return value;
+            else if constexpr (std::is_unsigned_v<used_type> && (sizeof(used_type) >= sizeof(size_ty))) { // || (sizeof(used_type) == sizeof(size_ty) && std::is_unsigned_v<size_ty>) {
+               if (static_cast<used_type>(std::numeric_limits<int_ty>::max()) < value) [[unlikely]]
+                  throw std::overflow_error("value "s + to_String(value) + " exceeds the maximum value of the signed type "s + typeid(int_ty).name());
+               else return static_cast<int_ty>(value);
+               }
+            else return static_cast<int_ty>(value);
+            }
+
+         [[nodiscard]] static constexpr size_ty to_size(my_integral_ty auto value) {
+            using used_type = decltype(value);
+            if constexpr (std::is_same_v<used_type, size_ty>) return value;
+            else if constexpr (std::is_signed_v<used_type>) {
+               if(value < 0) [[unlikely]] throw std::invalid_argument("signed value "s + to_String(value) + " is negative and can't be converted to unsigned.");
+               else {
+                  if constexpr (sizeof(used_type) > sizeof(size_ty)) { // || (sizeof(used_type) == sizeof(size_ty) && std::is_unsigned_v<size_ty>) {
+                     if (value > std::numeric_limits<size_t>::max()) [[unlikely]] {
+                        throw std::overflow_error("value "s + to_String(value) + " exceeds the maximum value of the unsigned type "s + typeid(size_ty).name());
+                        }
+                     else return static_cast<size_ty>(value);
+                     }
+                  else return static_cast<size_ty>(value);
+                  }
+               }
+            else {
+               if constexpr (std::numeric_limits<used_type>::max() > std::numeric_limits<size_t>::max()) {
+                  if (value > std::numeric_limits<size_t>::max()) [[unlikely]] {
+                     throw std::overflow_error("value "s + to_String(value) + " exceeds the maximum value of the unsigned type "s + typeid(size_ty).name());
+                     }
+                  else return static_cast<size_ty>(value);
+                  }
+               }
+            }
+
+         /*
+             size_ty toUnsigned(int_ty signedValue) const {
+        if (signedValue < 0) {
+            throw std::invalid_argument("Signed value is negative and cannot be converted to unsigned.");
+        }
+        return static_cast<size_ty>(signedValue);
+    }
+
+    // Convert unsigned to signed
+    int_ty toSigned(size_ty unsignedValue) const {
+        if (unsignedValue > static_cast<size_ty>(std::numeric_limits<int_ty>::max())) {
+            throw std::overflow_error("Unsigned value exceeds the maximum value of the signed type.");
+        }
+        return static_cast<int_ty>(unsignedValue);
+    }
+         */
+
          class coord_ty {
-            template <typename ty, EKind kind>
+            template <typename ty, EKind kind, my_integral_ty _size_ty, my_integral_ty _int_ty>
+               requires (std::is_unsigned_v<_size_ty>&& std::is_signed_v<_int_ty>)
             friend class grid_2D;
             friend void swap(coord_ty& lhs, coord_ty& rhs) noexcept { std::swap(lhs.get_data, rhs.get_data); }
 
@@ -182,8 +251,8 @@ namespace own {
             std::expected<coord_ty, error_ty> operator + (distance_ty const& other) const {
                if constexpr (is_grid<kind>) {
                   auto const& [delta_row, delta_col] = static_cast<distance_ty::data_ty const&>(other);
-                  auto new_row = static_cast<int_ty>(row()) + delta_row;
-                  auto new_col = static_cast<int_ty>(col()) + delta_col;
+                  auto new_row = grid.to_int(row()) + delta_row;
+                  auto new_col = grid.to_int(col()) + delta_col;
                   if (new_row < 0 || new_row >= static_cast<int_ty>(grid.rows()) || 
                       new_col < 0 || new_col >= static_cast<int_ty>(grid.cols())) [[unlikely]] {
                      std::pair<int_ty, int_ty> rest = { 0, 0 };
@@ -203,11 +272,11 @@ namespace own {
                         rest.second = new_col - static_cast<int_ty>((grid.cols() - 1));
                         new_col = static_cast<int_ty>(grid.cols() - 1);
                         }
-                     return std::unexpected(error_ty { { grid, static_cast<size_ty>(new_row), 
-                                                         static_cast<size_ty>(new_col) },
+                     return std::unexpected(error_ty { { grid, grid.to_size(new_row), 
+                                                         grid.to_size(new_col) },
                                                 rest });
                      }
-                  else return coord_ty { grid, static_cast<size_t>(new_row), static_cast<size_t>(new_col) };
+                  else return coord_ty { grid, grid.to_size(new_row), grid.to_size(new_col) };
                   }
                else {
                   auto const& [delta_x, delta_y] = static_cast<distance_ty::data_ty const&>(other);
@@ -232,8 +301,8 @@ namespace own {
                         rest.second = new_y - static_cast<int_ty>((grid.y_dim() - 1));
                         new_y = static_cast<int_ty>(grid.y_dim() - 1);
                         }
-                     return std::unexpected( error_ty { { grid, static_cast<size_ty>(new_x), 
-                                                          static_cast<size_ty>(new_y) },
+                     return std::unexpected( error_ty { { grid, grid.to_size(new_x),
+                                                          grid.to_size(new_y) },
                                                           rest });
                      }
                   else return coord_ty { grid, static_cast<size_t>(new_x), static_cast<size_t>(new_y) };
@@ -530,17 +599,239 @@ namespace own {
          const_iterator cbegin() const { return raw_data.cbegin(); }
          const_iterator cend() const   { return raw_data.cend(); }
 
+         //template <typename ty, EKind kind = EKind::grid>
+         class path_view {
+            template <bool>
+            friend class iterator_base;
+         public:
+            using used_grid = grid_2D<ty, kind>;
+
+            template <bool IsConst>
+            class iterator_base {
+               template <typename ty, EKind kind>
+               friend class path_view;
+            private:
+               using grid2d_ref = std::conditional_t<IsConst, path_view const&, path_view&>;
+               grid2d_ref        grid;
+               size_t            current_index;
+            public:
+               using iterator_category = std::random_access_iterator_tag;
+               using iterator_type = iterator_base<IsConst>;
+               using value_type = ty;
+               using difference_type = std::ptrdiff_t;
+               using pointer = ty*;
+               using reference = ty&;
+               using const_reference = ty const&;
+               using coord_ty = typename grid_2D<ty, kind>::coord_ty;
+
+               iterator_base(grid2d_ref owner, size_t index = 0) : grid(owner), current_index(index) {
+                  if (index > grid.path_way.size()) {
+                     throw std::out_of_range("iterator index for grid_view is out of range");
+                     }
+                  }
+
+               iterator_base(iterator_base const& other) : grid(other.grid), current_index(other.current_index) {}
+               iterator_base(iterator_base&& other) noexcept : grid(other.grid), current_index(std::exchange(other.current_index, 0)) {                   }
+
+               iterator_base& operator = (iterator_base const& other) {
+                  if (this != &other) {
+                     current_index = other.current_index;
+                     }
+                  return *this;
+                  }
+
+               iterator_base& operator = (iterator_base&& other) noexcept {
+                  if (this != &other) {
+                     current_index = std::exchange(other.current_index, 0);
+                     }
+                  return *this;
+                  }
+
+               reference operator * () {
+                  if constexpr (kind == EKind::grid) {
+                     auto const& row = grid.path_way[current_index].row();
+                     auto const& col = grid.path_way[current_index].col();
+                     return grid[row, col];
+                     }
+                  else {
+                     auto const& x_ = grid.path_way[current_index].x();
+                     auto const& y_ = grid.path_way[current_index].y();
+                     return grid[y_, x_];
+                     }
+                  }
+
+               const_reference operator * () const {
+                  auto const& [x, y] = grid.path_way[current_index];
+                  return grid[x, y];
+                  }
+
+               pointer operator -> () const {
+                  auto const& [x, y] = grid.path_way[current_index];
+                  return &grid[x, y];
+                  }
+
+
+               coord_ty get_coords() const {
+                  return grid.path_way[current_index];
+                  }
+
+
+               iterator_base& operator ++ () {
+                  ++current_index;
+                  return *this;
+                  }
+
+               iterator_base operator ++ (int) {
+                  iterator tmp = *this;
+                  ++(*this);
+                  return tmp;
+                  }
+
+               iterator_base& operator -- () {
+                  --current_index;
+                  return *this;
+                  }
+
+               iterator_base operator -- (int) {
+                  iterator tmp = *this;
+                  --(*this);
+                  return tmp;
+                  }
+
+               iterator_base operator + (difference_type n) const {
+                  return iterator(grid, current_index + n);
+                  }
+
+               iterator_base operator - (difference_type n) const {
+                  return iterator(grid, current_index - n);
+                  }
+
+               difference_type operator - (iterator_base const& other) const {
+                  return current_index - other.current_index;
+                  }
+
+               iterator_base& operator += (difference_type n) {
+                  current_index += n;
+                  return *this;
+                  }
+
+               iterator_base& operator -= (difference_type n) {
+                  current_index -= n;
+                  return *this;
+                  }
+
+               bool operator==(const iterator_base& other) const {
+                  return current_index == other.current_index;
+                  }
+
+               bool operator != (iterator_base const& other) const {
+                  return !(*this == other);
+                  }
+
+               bool operator < (iterator_base const& other) const {
+                  return current_index < other.current_index;
+                  }
+
+               bool operator > (iterator_base const& other) const {
+                  return current_index > other.current_index;
+                  }
+
+               bool operator <= (iterator_base const& other) const {
+                  return current_index <= other.current_index;
+                  }
+
+               bool operator >= (iterator_base const& other) const {
+                  return current_index >= other.current_index;
+                  }
+
+            };
+
+            using iterator = iterator_base<false>;
+            using const_iterator = iterator_base<true>;
+            using value_type = ty;
+            using reference = ty&;
+            using const_reference = const ty&;
+            using size_type = std::size_t;
+
+            path_view(used_grid& data, std::vector<typename used_grid::coord_ty> const& coords) : data_grid(data), path_way(coords) {}
+            path_view(path_view const& other) : data_grid(other.data_grid), path_way(other.path_way) {}
+            path_view(path_view&& other) noexcept : data_grid(std::move(other.data_grid)), path_way(std::move(other.path_way)) {}
+            ~path_view() = default;
+
+
+            iterator begin() { return iterator(*this); }
+            iterator end() { return iterator(*this, path_way.size()); }
+            iterator pos(size_t para_pos) { return iterator(*this, para_pos); }
+
+
+            const_iterator begin() const { return const_iterator(*this); }
+            const_iterator end() const { return const_iterator(*this, path_way.size()); }
+            const_iterator pos(size_t para_pos) const { return const_iterator(*this, para_pos); }
+
+            const_iterator cbegin() const { return begin(); }
+            const_iterator cend() const { return end(); }
+            const_iterator cpos(size_t para_pos) const { return iterator(*this, para_pos); }
+
+            auto rbegin() { return std::reverse_iterator(end()); }
+            auto rend() { return std::reverse_iterator(begin()); }
+            auto rpos(size_t para_pos) { return std::reverse_iterator(pos(para_pos)); }
+
+            auto rbegin() const { return std::reverse_iterator(end()); }
+            auto rend() const { return std::reverse_iterator(begin()); }
+            auto rpos(size_t para_pos) const { return std::reverse_iterator(pos(para_pos)); }
+
+            auto crbegin() const { return std::reverse_iterator(end()); }
+            auto crend() const { return std::reverse_iterator(begin()); }
+            auto crpos(size_t para_pos) const { return std::reverse_iterator(pos(para_pos)); }
+
+            size_type size() const { return path_way.size(); }
+            bool empty() const { return path_way.empty(); }
+
+            reference operator[](size_type index) {
+               auto const& [x, y] = path_way.at(index);
+               return data_grid(x, y);
+               }
+
+            const_reference operator[](size_type index) const {
+               auto const& [x, y] = path_way.at(index);
+               return data_grid(x, y);
+               }
+
+            ty& operator[](size_t row, size_t col) {
+               return data_grid[row, col];
+               }
+
+            ty const& operator[](size_t row, size_t col) const {
+               return data_grid[row, col];
+               }
+
+            ty& operator[](used_grid::coord_ty const& indices) {
+               return data_grid[indices];
+               }
+
+            ty const& operator[](used_grid::coord_ty const& indices) const {
+               return data_grid[indices];
+               }
+
+         private:
+            used_grid& data_grid;
+            std::vector<typename used_grid::coord_ty> const& path_way;
+         };
+
       };
 
 
       template <typename ty>
       concept my_grid_ty = requires {
+           typename ty::size_ty;
+           typename ty::int_ty;
            typename ty::value_type;
            typename ty::mdspan2d_t;
            typename ty::iterator;
            typename ty::const_iterator;
            typename ty::coord_ty;
            typename ty::coord_ty::distance_ty;
+           typename ty::path_view;
          }  &&
            std::is_same_v<typename ty::iterator, typename std::vector<typename ty::value_type>::iterator> &&
            std::is_same_v<typename ty::const_iterator, typename std::vector<typename ty::value_type>::const_iterator> &&
@@ -550,232 +841,7 @@ namespace own {
       // -----------------------------------------------------------------------------------------------------
 
 
-      template <typename ty, EKind kind = EKind::grid>
-      class grid2d_view {
-      template <bool>
-      friend class iterator_base;
-      public:
-         using used_grid = grid_2D<ty, kind>;
-
-         template <bool IsConst>
-         class iterator_base {
-            template <typename ty, EKind kind>
-            friend class grid2d_view;
-         private:
-            using grid2d_ref = std::conditional_t<IsConst, grid2d_view const&, grid2d_view&>;
-            grid2d_ref        grid;
-            size_t            current_index;
-         public:
-            using iterator_category = std::random_access_iterator_tag;
-            using iterator_type     = iterator_base<IsConst>;
-            using value_type        = ty;
-            using difference_type   = std::ptrdiff_t;
-            using pointer           = ty*;
-            using reference         = ty&;
-            using const_reference   = ty const&;
-            using coord_ty = typename grid_2D<ty, kind>::coord_ty;
-
-            iterator_base(grid2d_ref owner, size_t index = 0) : grid(owner), current_index(index) {
-               if (index > grid.path_way.size()) {
-                  throw std::out_of_range("iterator index for grid_view is out of range");
-                  }
-               }
-     
-            iterator_base(iterator_base const& other) : grid(other.grid), current_index(other.current_index) { }
-
-            iterator_base(iterator_base && other) noexcept : grid(other.grid), current_index(std::exchange(other.current_index, 0)) {
-               }
-
-            iterator_base& operator = (iterator_base const& other) {
-               if (this != &other) {
-                  current_index = other.current_index;
-                  }
-               return *this;
-               }
-
-            iterator_base& operator = (iterator_base&& other) noexcept {
-               if (this != &other) {
-                  current_index = std::exchange(other.current_index, 0);
-                  }
-               return *this;
-               }
-
-            reference operator * () {
-               if constexpr (kind == EKind::grid) { 
-                  auto const& row = grid.path_way[current_index].row();
-                  auto const& col = grid.path_way[current_index].col();
-                  //std::println(std::cout, "----> {},{}  ({})", x, y, current_index);
-                  return grid[row, col];
-                  }
-               else {
-                  auto const& x_ = grid.path_way[current_index].x();
-                  auto const& y_ = grid.path_way[current_index].y();
-                  //std::println(std::cout, "----> {},{}  ({})", x, y, current_index);
-                  return grid[y_, x_];
-               }
-               }
-
-            const_reference operator * () const {
-               auto const& [x, y] = grid.path_way[current_index];
-               //std::println(std::cout, "----> {},{}  ({})", x, y, current_index);
-               return grid[x, y];
-               }
-
-            pointer operator -> () const {
-               auto const& [x, y] = grid.path_way[current_index];
-               return &grid[x, y];
-               }
-
-            
-            coord_ty get_coords() const {
-               //auto const& [x, y] = grid.path_way[current_index];
-               //std::println(std::cout, "~~~~> {},{}  ({})", x, y, current_index);
-               return grid.path_way[current_index];
-               }
-            
-
-            iterator_base& operator ++ () {
-               ++current_index;
-               return *this;
-               }
-
-            iterator_base operator ++ (int) {
-               iterator tmp = *this;
-               ++(*this);
-               return tmp;
-               }
-
-            iterator_base& operator -- () {
-               --current_index;
-               return *this;
-               }
-
-            iterator_base operator -- (int) {
-               iterator tmp = *this;
-               --(*this);
-               return tmp;
-               }
-
-            iterator_base operator + (difference_type n) const {
-               return iterator(grid, current_index + n);
-               }
-
-            iterator_base operator - (difference_type n) const {
-               return iterator(grid, current_index - n);
-               }
-
-            difference_type operator - (iterator_base const& other) const {
-               return current_index - other.current_index;
-               }
-
-            iterator_base& operator += (difference_type n) {
-               current_index += n;
-               return *this;
-               }
-
-            iterator_base& operator -= (difference_type n) {
-               current_index -= n;
-               return *this;
-               }
-
-            bool operator==(const iterator_base& other) const {
-               return current_index == other.current_index;
-               }
-
-            bool operator != (iterator_base const& other) const {
-               return !(*this == other);
-               }
-
-            bool operator < (iterator_base const& other) const {
-               return current_index < other.current_index;
-               }
-
-            bool operator > (iterator_base const& other) const {
-               return current_index > other.current_index;
-               }
-
-            bool operator <= (iterator_base const& other) const {
-               return current_index <= other.current_index;
-               }
-
-            bool operator >= (iterator_base const& other) const {
-               return current_index >= other.current_index;
-               }
-
-         };
-
-         using iterator        = iterator_base<false>;
-         using const_iterator  = iterator_base<true>;
-         using value_type      = ty;
-         using reference       = ty&;
-         using const_reference = const ty&;
-         using size_type       = std::size_t;
-
-         grid2d_view(used_grid& data, std::vector<typename used_grid::coord_ty> const& coords) : data_grid(data), path_way(coords) {  }
-         grid2d_view(grid2d_view const& other) : data_grid(other.data_grid), path_way(other.path_way) { }
-         grid2d_view(grid2d_view&& other) noexcept : data_grid(std::move(other.data_grid)), path_way(std::move(other.path_way)) {  }
-         ~grid2d_view() = default;
-
-     
-         iterator begin()                           { return iterator(*this); }
-         iterator end()                             { return iterator(*this, path_way.size()); }
-         iterator pos(size_t para_pos)              { return iterator(*this, para_pos); }
-
-
-         const_iterator begin() const               { return const_iterator(*this); }
-         const_iterator end() const                 { return const_iterator(*this, path_way.size()); }
-         const_iterator pos(size_t para_pos) const  { return const_iterator(*this, para_pos); }
-
-         const_iterator cbegin() const              { return begin(); }
-         const_iterator cend() const                { return end(); }
-         const_iterator cpos(size_t para_pos) const { return iterator(*this, para_pos); }
-
-         auto rbegin()                    { return std::reverse_iterator(end()); }
-         auto rend()                      { return std::reverse_iterator(begin()); }
-         auto rpos(size_t para_pos)       { return std::reverse_iterator(pos(para_pos)); }
-
-         auto rbegin() const               { return std::reverse_iterator(end()); }
-         auto rend() const                 { return std::reverse_iterator(begin()); }
-         auto rpos(size_t para_pos) const  { return std::reverse_iterator(pos(para_pos)); }
-
-         auto crbegin() const              { return std::reverse_iterator(end()); }
-         auto crend() const                { return std::reverse_iterator(begin()); }
-         auto crpos(size_t para_pos) const { return std::reverse_iterator(pos(para_pos)); }
-
-         size_type size() const { return path_way.size(); }
-         bool empty() const { return path_way.empty(); }
-
-         reference operator[](size_type index) {
-            auto const& [x, y] = path_way.at(index);
-            return data_grid(x, y);
-            }
-
-         const_reference operator[](size_type index) const {
-            auto const& [x, y] = path_way.at(index);
-            return data_grid(x, y);
-            }
-
-         ty& operator[](size_t row, size_t col) {
-            return data_grid[row, col];
-            }
-
-         ty const& operator[](size_t row, size_t col) const {
-            return data_grid[row, col];
-            }
-
-         ty& operator[](used_grid::coord_ty const& indices) {
-            return data_grid[indices];
-            }
-
-         ty const& operator[](used_grid::coord_ty const& indices) const {
-            return data_grid[indices];
-            }
-
-      private:
-         used_grid&                           data_grid;
-         std::vector<typename used_grid::coord_ty> const& path_way;
-      };
-
+   
       
       template <typename ty, EKind kind>
       inline std::vector<std::vector<typename grid_2D<ty, kind>::coord_ty>> find_horz_inner_paths(grid_2D<ty, kind> const& grid) {
@@ -914,32 +980,32 @@ struct std::formatter<own::grid::grid_2D<typename ty, own::grid::EKind::grid>::c
 };
 */
 
-
+/*
 namespace std::ranges {
-   template <typename ty>
-   inline constexpr bool enable_view<own::grid::grid2d_view<ty>> = true;
+   template <typename ty, own::grid::EKind kind>
+   inline constexpr bool enable_view<typename own::grid::grid_2D<ty, kind>::path_view> = true;
 
-   template <typename ty>
-   auto begin(own::grid::grid2d_view<ty>& grid) {
+   template <typename ty, own::grid::EKind kind>
+   auto begin(typename own::grid::grid_2D<ty, kind>::path_view >& grid) {
       return grid.begin();
       }
 
-   template <typename ty>
-   auto end(own::grid::grid2d_view<ty>& grid) {
+   template <typename ty, own::grid::EKind kind>
+   auto end(typename own::grid::grid_2D<ty, kind>::path_view& grid) {
       return grid.end();
       }
 
-   template <typename ty>
-   auto begin(own::grid::grid2d_view<ty> const& grid) {
+   template <typename ty, own::grid::EKind kind>
+   auto begin(typename own::grid::grid_2D<ty, kind>::path_view const& grid) {
       return grid.begin();
       }
 
-   template <typename ty>
-   auto end(own::grid::grid2d_view<ty> const& grid) {
+   template <typename ty, own::grid::EKind kind>
+   auto end(typename own::grid::grid_2D<ty, kind>::path_view const& grid) {
       return grid.end();
       }
 } // end of std::ranges
-
+*/
 /*
 namespace std {
    template<>

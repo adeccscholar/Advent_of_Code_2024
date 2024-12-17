@@ -153,6 +153,10 @@ inline std::string MyPostionTimeStamp(std::source_location const& loc = std::sou
 template <typename ty>
 concept my_integral_ty = std::is_integral_v<ty> && !std::is_same_v<ty, bool>;
 
+template<my_integral_ty ty1, my_integral_ty ty2>
+using biggest_int_of = std::conditional_t<(sizeof(ty1) > sizeof(ty2)) || (sizeof(ty1) == sizeof(ty2) && std::is_unsigned_v<ty1>), ty1, ty2>;
+
+
 template <typename ty>
 concept my_string_ty = std::is_same_v<ty, std::string> || std::is_same_v<ty, std::string_view>;
 
@@ -186,12 +190,6 @@ ty toInt(str_ty str) {
       }
    }
 
-/*
-template <my_integral_ty ty>
-ty toInt(std::string const& str) {
-   return toInt<ty>(std::string_view{ str.data(), str.size() });
-   }
-*/
 
 template <my_integral_ty ty>
 ty Difference(ty const& a, ty const& b) {
