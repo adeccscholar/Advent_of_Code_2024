@@ -8,6 +8,24 @@
 // copyright © adecc Systemhaus GmbH 2024, All rights reserved.
 // This project is released under the MIT License.
 
+/*
+The template class grid_2d combines the C++ type std::mdspan with 
+a std::vector and specialized vectors with horizontal, vertical, and 
+diagonal 'slices' to use standard algorithms and std::searcher for 
+searching within a data grid. It uses the std::vector::iterator to 
+apply algorithms to the new type.
+Implements a grid_2d::path_view class with iterators along the 'slices' 
+or supports movements along these 'slices'. It demonstrates how different 
+containers can be used together and how their properties complement each 
+other. It also shows how to extend iterators. 
+A custom class grid_2d::coord_ty is used for coordinates and mathematical 
+operators.
+
+The grid_2d has been outsourced into a reusable header file "my_grid2d.3.h"
+and extended over the following days, as subsequent tasks will also 
+involve grids.
+*/
+
 #include "my_common_tools.h"
 #include "my_grid2d.h"
 
@@ -24,6 +42,8 @@
 #include <atomic>
 
 using namespace std::string_literals;
+
+namespace nsDay04 {
 
 inline std::pair<std::string, std::string> RiddleDay4(std::string&& text) { 
    const own::grid::EKind grid_kind = own::grid::EKind::grid;
@@ -79,3 +99,4 @@ inline std::pair<std::string, std::string> RiddleDay4(std::string&& text) {
    return { to_String(result_1.load()), to_String(result_2.load()) };
    }
 
+} // end of namespace nsDay04

@@ -17,7 +17,39 @@
 #include <ranges>
 #include <print>
 
+/*
+Checking input from a std::ranges::input_range and then reading 
+a space-separated list of integers line by line into a std::vector.
+Using std::views::slide to compare the elements of a line and 
+determine the differences between adjacent elements. Evaluation is 
+done with std::ranges::all_of.
+In the second part, std::views::enumerate is used to generate indices 
+for the elements and to create writable slides.
+The template functions checkSpaceSeparatedIntegers and extractNumbers 
+are so general that they can be reused.
+*/
+
 using namespace std::string_literals;
+
+namespace nsDay02 {
+
+template <size_t SIZE>
+inline bool constexpr checkSpaceSeparatedIntegers(std::string const& text) {
+   static std::regex fullPattern("^(0|[1-9]\\d{0,"s + to_String(SIZE - 1) + "})( (0|[1-9]\\d{0," + to_String(SIZE - 1) + "}))*$"s);
+   return std::regex_match(text, fullPattern) ? true : false;
+   }
+
+template <my_integral_ty ty>
+std::vector<ty> extractNumbers(std::string_view para) {
+   std::vector<ty> result;
+   static std::regex numberRegex(R"(\d+)");
+   std::string input = { para.begin(), para.end() };
+   for (auto it = std::sregex_iterator(input.begin(), input.end(), numberRegex); it != std::sregex_iterator(); ++it) {
+      result.emplace_back(toInt<ty>(it->str()));
+      }
+   return result;
+   }
+
 
 template <std::ranges::input_range range_ty>
 std::pair<std::string, std::string> RiddleDay2(range_ty const& values) {
@@ -111,3 +143,5 @@ std::pair<std::string, std::string> RiddleDay2(range_ty const& values) {
    std::println(std::cout, "the result for the 2nd part is {}", result_2);
    return { to_String(result_1), to_String(result_2) };
 }
+
+} // end of namespace nsDay02

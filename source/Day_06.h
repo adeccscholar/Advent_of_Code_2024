@@ -20,6 +20,7 @@
 #include <memory>
 #include <tuple>
 #include <array>
+#include <unordered_set>
 #include <ranges>
 #include <print>
 
@@ -29,87 +30,20 @@ enum class EDirections : char {
    upward = '^', right = '>', downward = 'v', left = '<'
   };
 
-template <own::grid::my_grid_ty grid_ty>
-bool is_rectangle(std::array<std::unique_ptr<typename grid_ty::coord_ty>, 4> const& points) {
-   std::array<size_t, 4> rows, cols;
-   for (size_t i = 0; i < 4; ++i) {
-      if(points[i]) {
-         rows[i] = (*points[i]).row();
-         cols[i] = (*points[i]).col();
-         }
-      }
-
-   std::ranges::sort(rows);
-   std::ranges::sort(cols);
-
-   auto last_row = std::unique(rows.begin(), rows.end());
-   auto last_col = std::unique(cols.begin(), cols.end());
-
-   size_t unique_rows = std::distance(rows.begin(), last_row);
-   size_t unique_cols = std::distance(cols.begin(), last_col);
-
-   return unique_rows == 2 && unique_cols == 2;
-   }
-
-template <typename ty, size_t SIZE>
-bool next_combination(std::array<ty, SIZE>& indices, size_t n) {
-   size_t k = SIZE;
-   for (size_t i = k; i-- > 0;) {
-      if (indices[i] != i + n - k) {
-         ++indices[i];
-         for (size_t j = i + 1; j < k; ++j) {
-            indices[j] = indices[j - 1] + 1;
-            }
-         return true;
-         }
-      }
-   return false;
-   }
-
-template <own::grid::my_grid_ty grid_ty, size_t SIZE>
-std::vector<std::array<std::unique_ptr<typename grid_ty::coord_ty>, SIZE>> combination(grid_ty const& grid, std::span<typename grid_ty::coord_ty> values) {
-   std::vector<std::array<std::unique_ptr<typename grid_ty::coord_ty>, SIZE>> result;
-   if (values.size() < SIZE) return result;
-
-   std::array<size_t, SIZE> indices;
-   std::iota(indices.begin(), indices.end(), 0);
-
-   do {
-      typename grid_ty::coord_ty empty = { grid, 0, 0 };
-      std::array<std::unique_ptr<typename grid_ty::coord_ty>, SIZE> combination;
-      for (size_t i = 0; i < SIZE; ++i) 
-         combination[i] = std::make_unique<typename grid_ty::coord_ty>( grid, values[indices[i]]);
-      result.emplace_back(combination);
-      } 
-   while (next_combination<size_t, SIZE>(indices, values.size()));
-   return result;
-   }
 
 template <own::grid::my_grid_ty grid_ty>
-void step_func(typename grid_ty::coord_ty const& coords,
-               std::vector<typename grid_ty::coord_ty>& edges,
-               std::vector<typename grid_ty::coord_ty>& path) {
-   if (std::ranges::find_if(path, [&edges, &coords](auto const& elem) { return elem == coords; }) != path.end()) {
-      if (std::ranges::find_if(edges, [&coords](auto const& elem) { return elem == coords; }) == edges.end()) {
-          edges.emplace_back(coords);
-         }
-      }
-   else path.emplace_back(coords);
+void step_func(grid_ty const& grid, typename grid_ty::coord_ty const& coords, EDirections direction,
+               std::vector<std::tuple<typename grid_ty::coord_ty, EDirections, bool>>& path) {
+   using coord_ty = typename grid_ty::coord_ty;
+   using path_ty = std::tuple<typename grid_ty::coord_ty, EDirections, bool>;
+   coord_ty element(coords);
+   //if (std::ranges::find_if(path, [&coords](auto const& elem) { return std::get<0>(elem) == coords; }) == path.end()) {
+      path.emplace_back(path_ty { element, direction, false });
+   //   }
+   //else path.emplace_back(path_ty { element, direction, true });;
    }
 
-template <own::grid::my_grid_ty grid_ty>
-void step_rev_func(typename grid_ty::coord_ty const& coords,
-                   std::vector<typename grid_ty::coord_ty>& edges,
-                   std::vector<typename grid_ty::coord_ty>& path) {   
-   //auto coords = iter.base().get_coords();
-   if (std::ranges::find_if(path, [&edges, &coords](auto const& elem) { return elem == coords; }) != path.end()) {
-      edges.emplace_back(coords);
-      }
-   else path.emplace_back(coords);
-   }
-
-
-const size_t UseLogLevel = 0;
+const size_t UseLogLevel = 3;
 
 template <size_t LogLevel = UseLogLevel>
 inline std::pair<std::string, std::string> RiddleDay6(std::string&& text) { 
@@ -118,6 +52,7 @@ inline std::pair<std::string, std::string> RiddleDay6(std::string&& text) {
    const own::grid::EKind grid_kind = own::grid::EKind::grid;
    using grid_ty  = own::grid::grid_2D<char, grid_kind>;
    using coord_ty = typename grid_ty::coord_ty;
+   using hash_ty = typename grid_ty::coord_ty_hash;
    
    text.erase(std::ranges::remove(text, '\n').begin(), text.end());
    grid_ty grid(rows, cols);
@@ -126,29 +61,28 @@ inline std::pair<std::string, std::string> RiddleDay6(std::string&& text) {
    auto horizontal = own::grid::find_horz_paths<char, own::grid::EKind::grid>(grid);
    auto vertical = own::grid::find_vert_paths<char, grid_kind>(grid);
    
-   std::vector<coord_ty> edges;
-   std::vector<coord_ty> path;
+   using path_ty = std::tuple<coord_ty, EDirections, bool>;
+   std::vector<path_ty> path;
 
    auto turn_right = [](EDirections dir) -> EDirections {
       static std::map<EDirections, EDirections> rules = {
-               { EDirections::upward , EDirections::right },
-               { EDirections::right,   EDirections::downward },
+               { EDirections::upward ,  EDirections::right },
+               { EDirections::right,    EDirections::downward },
                { EDirections::downward, EDirections::left },
-               { EDirections::left, EDirections::upward }
+               { EDirections::left,     EDirections::upward }
                };
       return rules[dir];
       };
 
  
-
    using move_ret_type = std::tuple<size_t, size_t, bool>;
-   std::map<EDirections, std::function<move_ret_type(size_t row, size_t col)>> moves_func = {
-      { EDirections::upward, [&grid, &vertical, &edges, &path](size_t row, size_t col) -> move_ret_type {
+   std::map<EDirections, std::function<move_ret_type(size_t row, size_t col, bool edge)>> moves_func = {
+      { EDirections::upward, [&grid, &vertical, &path](size_t row, size_t col, bool edge) -> move_ret_type {
               grid_ty::path_view view(grid, vertical[col]);
               auto start = view.rpos(row);
               if (auto it = std::find(start, view.rend(), '#'); it != view.rend()) {
                  for (auto iter = start; iter != it; ++iter) {
-                    step_rev_func<grid_ty>((iter.base() - 1).get_coords(), edges, path);
+                    step_func(grid, (iter.base() - 1).get_coords(), EDirections::upward, path); // from reverse
                     }
                  auto const& new_row = (it.base() - 1).get_coords().row();
                  auto const& new_col = (it.base() - 1).get_coords().col();
@@ -156,89 +90,87 @@ inline std::pair<std::string, std::string> RiddleDay6(std::string&& text) {
                  }
               else {
                  for (auto iter = start; iter != it; ++iter) {
-                    step_rev_func<grid_ty>((iter.base() - 1).get_coords(), edges, path);
+                    step_func<grid_ty>(grid, (iter.base() - 1).get_coords(), EDirections::upward, path); // from reverse
                     }
                  return { 0, col, false };
                  }
               }},
-      { EDirections::right, [&grid, &horizontal, &edges, &path](size_t row, size_t col) -> move_ret_type {
+      { EDirections::right, [&grid, &horizontal, &path](size_t row, size_t col, bool edge) -> move_ret_type {
               grid_ty::path_view view(grid, horizontal[row]);
               auto start = view.pos(col);
               if (auto it = std::find(start, view.end(), '#'); it != view.end()) {
-                 for (auto iter = start + 1; iter != it; ++iter)  { step_func<grid_ty>(iter.get_coords(), edges, path); };
+                 for (auto iter = start + 1; iter != it; ++iter)  { step_func<grid_ty>(grid, iter.get_coords(), EDirections::right, path); };
                  auto const& new_row = it.get_coords().row();
                  auto const& new_col = it.get_coords().col();
                  return { new_row, new_col - 1, true };
                  }
               else {
-                 for (auto iter = start + 1; iter != it; ++iter) { step_func<grid_ty>(iter.get_coords(), edges, path); };
+                 for (auto iter = start + 1; iter != it; ++iter) { step_func<grid_ty>(grid, iter.get_coords(), EDirections::right, path); };
                  return { row, grid.cols(), false };
                  }
               }},
-      { EDirections::downward, [&grid, &vertical, &edges, &path](size_t row, size_t col) -> move_ret_type {
+      { EDirections::downward, [&grid, &vertical, &path](size_t row, size_t col, bool edge) -> move_ret_type {
               grid_ty::path_view view(grid, vertical[col]);
               auto start = view.pos(row);
               if (auto it = std::find(start, view.end(), '#'); it != view.end()) {
-                 for (auto iter = start + 1; iter != it; ++iter)  { step_func<grid_ty>(iter.get_coords(), edges, path); }
+                 for (auto iter = start + 1; iter != it; ++iter)  { step_func<grid_ty>(grid, iter.get_coords(), EDirections::downward, path); }
                  auto const& new_row = it.get_coords().row();
                  auto const& new_col = it.get_coords().col();
                  return { new_row - 1, new_col, true };
                  } 
               else {
-                 for (auto iter = start + 1; iter != it; ++iter) { step_func<grid_ty>(iter.get_coords(), edges, path); }
+                 for (auto iter = start + 1; iter != it; ++iter) { step_func<grid_ty>(grid, iter.get_coords(), EDirections::downward, path); }
                  return { grid.rows(), col, false };
                  }
               }},
-      { EDirections::left, [&grid, &horizontal, &edges, &path](size_t row, size_t col) -> move_ret_type {
+      { EDirections::left, [&grid, &horizontal, &path](size_t row, size_t col, bool edge) -> move_ret_type {
               grid_ty::path_view view(grid, horizontal[row]);
               auto start = view.rpos(col);
               if (auto it = std::find(start, view.rend(), '#'); it != view.rend()) {
-                 for (auto iter = start; iter != it; ++iter) { step_rev_func<grid_ty>((iter.base() - 1).get_coords(), edges, path); };
+                 for (auto iter = start; iter != it; ++iter) { step_func<grid_ty>(grid, (iter.base() - 1).get_coords(), EDirections::left, path); }; // from reverse
                  auto const& new_row = (it.base() - 1).get_coords().row();
                  auto const& new_col = (it.base() - 1).get_coords().col();
                  return { new_row, new_col + 1, true };
                  }
               else {
-                 for (auto iter = start; iter != it; ++iter) { step_rev_func<grid_ty>((iter.base() - 1).get_coords(), edges, path); }
+                 for (auto iter = start; iter != it; ++iter) { step_func<grid_ty>(grid, (iter.base() - 1).get_coords(), EDirections::left, path); } // from reverse
                  return { 0, col, false };
                  }
               } }
       };
 
+   size_t result_1 = 0, result_2 = 0;
+
    if(auto pos = std::find(grid.begin(), grid.end(), '^'); pos != grid.end()) {
       auto const& c_row = grid(std::distance(grid.begin(), pos)).row();
       auto const& c_col = grid(std::distance(grid.begin(), pos)).col();
-      path.emplace_back(coord_ty{ grid, c_row, c_col });
+      path.emplace_back( path_ty { coord_ty { grid, c_row, c_col }, EDirections::upward, false });
       EDirections move = EDirections::upward;
-      //path.emplace_back(coord_ty{ grid, c_row, c_col });
-      auto [row_, col_, ok_] = moves_func[move](c_row, c_col);
-      for(; ok_; std::tie(row_, col_, ok_) = moves_func[move](row_, col_)) {
-         edges.emplace_back(coord_ty{ grid, row_, col_ });
+      auto [row_, col_, ok_] = moves_func[move](c_row, c_col, true);
+      for(; ok_; std::tie(row_, col_, ok_) = moves_func[move](row_, col_, true)) {
+         //edges.insert({{ grid, row_, col_ }, move });
          move = turn_right(move);
          }
-      //path.emplace_back(coord_ty { grid, row_, col_ });
-
-      /*
-      auto res2 = combination<grid_ty, 4>(grid, edges)
-                      | std::views::filter([&grid](auto const& v) { return is_rectangle<grid_ty>(*); })
-                      | std::ranges::to<std::vector>();
-
-      */
-      /*
-      if constexpr (LogLevel > 2) {
-      for(auto const& val : res2) 
-         std::apply([](auto&&... args) { return std::println(std::cout, "{} {} {} {}", args...); }, val);
-         }
-
-      if constexpr (LogLevel > 4) grid.print(std::cout);
-   */   
      }
-  
+  // 236 to low
+
+
 
    //if constexpr (LogLevel > 3) for (auto const& p : path) std::println(std::cout, "{}", p);
-   size_t result_1 = 0, result_2 = 0;
-   result_1 = path.size();
+   std::unordered_set<coord_ty, hash_ty> counter;
+   for (auto const& [coord, dir, edge] : path) {
+      counter.insert(coord);
+      grid[coord] = static_cast<char>(dir);
+      }
+   //if constexpr (LogLevel > 1) {
+      grid.print(std::cout, 1);
+      std::println(std::cout, "");
+   //   }
+   
+   result_1 = counter.size();
+   result_2 = path.size(); // std::ranges::count_if(path, [](auto const& e) { return std::get<2>(e) == true; });
    std::println(std::cout, "the result for the 1st part is {}", result_1);
+   std::println(std::cout, "the result for the 2nd part is {}", result_2);
    return { to_String(result_1), to_String(result_2) };
    }
 

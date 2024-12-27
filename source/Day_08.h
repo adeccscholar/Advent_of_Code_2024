@@ -64,8 +64,8 @@ inline std::pair<std::string, std::string> RiddleDay8(std::string&& text) {
       auto pairs = combine<grid_ty, coord_ty>(grid, vals);
       for (auto const& [first, second] : pairs) {
          auto distance = second - first;
-         if (auto new_coord_1 = first - distance; new_coord_1.has_value() && grid[*new_coord_1] != key)  antinodes.insert(*new_coord_1);
-         if (auto new_coord_2 = second + distance; new_coord_2.has_value() && grid[*new_coord_2] != key) antinodes.insert(*new_coord_2);
+         if (auto new_coord_1 = first.Sub(distance);  new_coord_1.has_value() && grid[*new_coord_1] != key) antinodes.insert(*new_coord_1);
+         if (auto new_coord_2 = second.Add(distance); new_coord_2.has_value() && grid[*new_coord_2] != key) antinodes.insert(*new_coord_2);
          }
       }
 
@@ -77,10 +77,10 @@ inline std::pair<std::string, std::string> RiddleDay8(std::string&& text) {
       auto pairs = combine<grid_ty, coord_ty>(grid, vals);
       for (auto const& [first, second] : pairs) {
          auto distance = second - first;
-         for (auto new_coord_1 = first - distance; new_coord_1.has_value(); new_coord_1 = *new_coord_1 - distance) {
+         for (auto new_coord_1 = first.Sub(distance);  new_coord_1.has_value(); new_coord_1 = new_coord_1->Sub(distance)) {
             /*if(grid[*new_coord_1] != key)*/  antinodes.insert(*new_coord_1);
             }
-         for (auto new_coord_2 = second + distance; new_coord_2.has_value(); new_coord_2 = *new_coord_2 + distance) {
+         for (auto new_coord_2 = second.Sub(distance); new_coord_2.has_value(); new_coord_2 = new_coord_2->Add(distance)) {
             /*if(grid[*new_coord_2] != key)*/ antinodes.insert(*new_coord_2);
             }
          }

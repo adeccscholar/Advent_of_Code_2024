@@ -10,6 +10,8 @@
 
 #include "my_common_tools.h"
 
+#include "Day_02.h"
+
 #include <string>
 #include <utility>
 #include <functional>
@@ -18,6 +20,8 @@
 #include <print>
 
 namespace nsDay07 {
+
+
 
 template <my_integral_ty ty, typename func_ty>
 bool recursion_func_1(std::span<ty> values, ty res, func_ty&& func, ty acc) {
@@ -42,7 +46,7 @@ std::pair<std::string, std::string> RiddleDay7(range_ty const& values) {
                        | std::views::filter([](auto const& opt) { return opt.has_value(); })
                        | std::views::transform([](auto const& p) {
                              auto result = toInt<size_t>(std::get<0>(*p));
-                             auto input = extractNumbers<size_t>(std::get<1>(*p));
+                             auto input = nsDay02::extractNumbers<size_t>(std::get<1>(*p));
                              return std::make_tuple(result, input);
                              })
                        | std::ranges::to<std::vector>();

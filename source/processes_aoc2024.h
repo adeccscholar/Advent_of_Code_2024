@@ -11,6 +11,7 @@
 #include <map>
 #include <string>
 #include <functional>
+#include <variant>
 #include <ranges>
 
 enum class statusRiddle : uint16_t { none = 0, added = 1, prepared = 2, 
@@ -22,11 +23,14 @@ class TAOC2024Processes {
 public:
    using cntrlData  = std::tuple<std::string, std::string, std::string, std::function<void(TMyForm&)>, statusRiddle>;
    using cntrlDatas = std::map<size_t, cntrlData>;
-   using testDatas = std::map<size_t, std::tuple<std::string, std::optional<std::tuple<size_t, size_t>>>>;
+   using testValue  = std::variant<size_t, std::string>;
+   using testData   = std::tuple<std::optional<testValue>, std::optional<testValue>>;
+   using testDatas = std::map<size_t, std::tuple<std::string, testData>>;
 
    static std::string inline strApplication = "Advent of Code 2024"s;
    static cntrlDatas control;
    static testDatas  test;
+   static bool       boHasTestButton;
 
    static void Init(TMyForm&& frm);
    static void Info(TMyForm&& frm);

@@ -7,6 +7,17 @@
 // copyright © adecc Systemhaus GmbH 2024, All rights reserved.
 // This project is released under the MIT License.
 
+/*
+Searching for patterns using std::regex in a std::ranges::input_range 
+and using the results to parse integers into a std::vector<std::pair>.
+Later, using std::accumulate to perform operations on the pairs and 
+sum up the results.
+In the second part, using alternative patterns and evaluating with 
+std::smatch to detect different actions in the continuous input stream 
+and modify the state.
+Comparing a combination of std::regex and direct searching with
+std::string::find for a more effective algorithm.
+*/
 
 #include "my_common_tools.h"
 
@@ -19,6 +30,8 @@
 #include <print>
 
 using namespace std::string_literals;
+
+namespace nsDay03 {
 
 template <std::ranges::input_range range_ty>
 inline std::pair<std::string, std::string> RiddleDay3(range_ty const& values) {
@@ -100,3 +113,5 @@ inline std::pair<std::string, std::string> RiddleDay3(range_ty const& values) {
    std::println(std::cout, "the result for the 2nd part is {}", result_2);
    return { to_String(result_1), to_String(result_2) };
    }
+
+} // end of namespace nsDay03

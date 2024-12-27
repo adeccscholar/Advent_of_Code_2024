@@ -8,7 +8,23 @@
 // This project is released under the MIT License.
 
 
-// there seems a problem with the iterator, when passed as parameter
+/*
+
+Use of std::regex to check various types of input lines, thereby 
+separating them and processing them in two separate std::ranges pipes. 
+The paired rules are read into a std::set<std::pair<size_t, size_t>> 
+so that direct access is possible using std::set::find. 
+The pages of a line are read into a std::vector<int> and passed on 
+through the pipe, so that all lines with pages in the input are returned 
+as a std::vector<std::vector<size_t>>.
+
+Indirect indexing of pages in the inner std::vector via the rules.
+The generic template methods checkSeparatedIntegers, parseSeparatedIntegers, 
+checkSeparatedIntegersPair, and parseSeparatedPairs provide the functionality 
+for reading the data in a reusable manner. For the check methods, different 
+delimiters can also be specified as template parameters.
+
+*/
 
 #include "qt_form.h"
 #include "qt_iteratoren.h"
@@ -21,7 +37,49 @@
 #include <ranges>
 #include <print>
 
+namespace nsDay05 {
 
+template <char Sep = ','>
+inline bool checkSeparatedIntegers(std::string const& text) {
+   static const std::regex fullPattern("^(0|[1-9]\\d+)("s + Sep + "(0|[1-9]\\d+))*$"s);
+   return std::regex_match(text, fullPattern) ? true : false;
+   }
+
+template <char Sep = ','>
+inline bool checkSeparatedIntegers_view(std::string_view const& text) {
+   return checkCommaSeparatedIntegers<Sep>({ text.begin(), text.end() });
+   }
+
+template <my_integral_ty ty>
+std::vector<ty> parseSeparatedIntegers(std::string const& text) {
+   static const std::regex numberPattern(R"(0|[1-9]\d+)");
+   std::vector<ty> results;
+   for(std::sregex_iterator iter(text.begin(), text.end(), numberPattern); iter != std::sregex_iterator(); ++iter) {
+      results.emplace_back(toInt<ty>(iter->str())); 
+      }
+   return results;
+   }
+
+template <my_integral_ty ty>
+std::vector<ty> parseSeparatedIntegers_view(std::string_view const& text) {
+   return parseCommaSeparatedIntegers<ty>({ text.begin(), text.end() });
+   }
+
+inline bool checkSeparatedIntegersPairs(std::string const& text) {
+   static std::regex fullPattern(R"(^(([1-9][0-9]{0,2})\|([1-9][0-9]{0,2}))$)");
+   return std::regex_match(text, fullPattern) ? true : false;
+   }
+
+template <my_integral_ty ty>
+std::tuple<ty, ty> parseSeparatedPairs(std::string const& text) {
+   static std::regex fullPattern(R"(^(([1-9][0-9]{0,2})\|([1-9][0-9]{0,2}))$)");
+   std::smatch match;
+   if (std::regex_match(text, match, fullPattern)) [[likely]]
+      return { toInt<ty>(match[2].str()), toInt<ty>(match[3].str()) };
+   else throw std::invalid_argument(std::format("unexpected input: ", text));;
+   }
+
+// problem with the std::ranges::input_range. formular wrapper as paramter and read in function
 inline std::pair<std::string, std::string> RiddleDay5(TMyForm& frm) { 
    auto values = frm.GetLines("memInput");
    auto rules        = values | std::views::transform(toString<std::string_view>)
@@ -69,10 +127,11 @@ inline std::pair<std::string, std::string> RiddleDay5(TMyForm& frm) {
          } 
       while (!check(current_update));
       result_2 += current_update[current_update.size() / 2];
-      //std::println(std::cout, "{}", current_update);
       }
    
    std::println(std::cout, "the result for the 2nd part is {}", result_2);
 
    return { to_String(result_1), to_String(result_2) };
    }
+
+} // end of namespace nsDay05

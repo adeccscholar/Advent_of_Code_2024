@@ -191,12 +191,6 @@ ty toInt(str_ty str) {
    }
 
 
-template <my_integral_ty ty>
-ty Difference(ty const& a, ty const& b) {
-   return b > a ? b - a : a - b;
-   }
-
-
 template <typename ty>
 concept my_number = std::is_floating_point_v< std::remove_cvref_t<ty>> ||
                     (std::is_integral_v<std::remove_cvref_t<ty>> && !std::is_same_v<ty, bool>);
@@ -229,36 +223,6 @@ struct std::formatter<std::vector<ty>> : std::formatter<std::string_view> {
       }
 };
 
-template <my_integral_ty ty>
-std::pair<ty, ty> parsePair(std::string_view const& para) {
-   std::regex pattern(R"(\s*(\d+)\s+(\d+)\s*)");
-   std::smatch matches;
-   std::string input = { para.begin(), para.end() };
-   if (std::regex_match(input, matches, pattern)) {
-      return { toInt<ty>(matches[1].str()), toInt<ty>(matches[2].str()) };
-      }
-   else {
-      throw std::invalid_argument("unexpected format, couldn't extract numbers.");
-      }
-   }
-
-template <size_t SIZE>
-inline bool constexpr checkSpaceSeparatedIntegers(std::string const& text) {
-   static std::regex fullPattern("^(0|[1-9]\\d{0,"s + to_String(SIZE-1) + "})( (0|[1-9]\\d{0," + to_String(SIZE-1) + "}))*$"s);
-   return std::regex_match(text, fullPattern) ? true : false;
-}
-
-
-template <my_integral_ty ty>
-std::vector<ty> extractNumbers(std::string_view para) {
-   std::vector<ty> result;
-   static std::regex numberRegex(R"(\d+)");
-   std::string input = { para.begin(), para.end() };
-   for (auto it = std::sregex_iterator(input.begin(), input.end(), numberRegex); it != std::sregex_iterator(); ++it) {
-      result.emplace_back(toInt<ty>(it->str()));
-      }
-   return result;
-   }
 
 template <my_integral_ty ty>
 std::vector<ty> extractNumbers_with(std::string_view para, ty start) {
@@ -289,47 +253,6 @@ inline std::optional<std::tuple<std::string_view, std::string_view>> splitString
 
 
 // -------------------------------------------------------------------------------
-template <char Sep = ','>
-inline bool checkSeparatedIntegers(std::string const& text) {
-   static const std::regex fullPattern("^(0|[1-9]\\d+)("s + Sep + "(0|[1-9]\\d+))*$"s);
-   return std::regex_match(text, fullPattern) ? true : false;
-   }
-
-template <char Sep = ','>
-inline bool checkSeparatedIntegers_view(std::string_view const& text) {
-   return checkCommaSeparatedIntegers<Sep>({ text.begin(), text.end() });
-   }
-
-template <my_integral_ty ty>
-std::vector<ty> parseSeparatedIntegers(std::string const& text) {
-   static const std::regex numberPattern(R"(0|[1-9]\d+)");
-   std::vector<ty> results;
-   for(std::sregex_iterator iter(text.begin(), text.end(), numberPattern); iter != std::sregex_iterator(); ++iter) {
-      results.emplace_back(toInt<ty>(iter->str())); 
-      }
-   return results;
-   }
-
-template <my_integral_ty ty>
-std::vector<ty> parseSeparatedIntegers_view(std::string_view const& text) {
-   return parseCommaSeparatedIntegers<ty>({ text.begin(), text.end() });
-   }
-
-inline bool checkSeparatedIntegersPairs(std::string const& text) {
-   static std::regex fullPattern(R"(^(([1-9][0-9]{0,2})\|([1-9][0-9]{0,2}))$)");
-   return std::regex_match(text, fullPattern) ? true : false;
-   }
-
-template <my_integral_ty ty>
-std::tuple<ty, ty> parseSeparatedPairs(std::string const& text) {
-   static std::regex fullPattern(R"(^(([1-9][0-9]{0,2})\|([1-9][0-9]{0,2}))$)");
-   std::smatch match;
-   if (std::regex_match(text, match, fullPattern)) [[likely]]
-      return { toInt<ty>(match[2].str()), toInt<ty>(match[3].str()) };
-   else throw std::invalid_argument(std::format("unexpected input: ", text));;
-   }
-
-// ------------------------------------------------------------------------------------------
 
 // functions added with 7th day
 
@@ -356,13 +279,6 @@ inline std::vector<std::vector<uint16_t>> calculateBinaryRules(size_t cntOps) {
       }
    return rules;
    }
-
-/*
-template <my_integral_ty ty>
-ty concatenateNumbers(ty first, ty second) {
-   return toInt<ty>(std::format("{}{}", first, second));
-}
-*/
 
 
 template <my_integral_ty ty>

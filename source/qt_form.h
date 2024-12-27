@@ -113,6 +113,12 @@ public:
       Find<QPushButton>(name)->setText(QString::fromStdString(value));
       }
 
+
+   void SetButtonVisible(std::string const& name, bool value) {
+      Find<QPushButton>(name)->setVisible(value);
+   }
+
+
    void SetGroupBox(std::string const& name, std::string const& value) {
       Find<QGroupBox>(name)->setTitle(QString::fromStdString(value));
       }
