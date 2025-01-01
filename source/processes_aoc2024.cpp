@@ -1,7 +1,7 @@
 ﻿// Project: Solutions for Advent of Code 2024
 // file with the control data for process and common processes functions
 // author: Volker Hillmann
-// date:   05.12.20204, last change: 21.12.2024   
+// date:   05.12.20204, last change: 30.12.2024   
 // copyright © adecc Systemhaus GmbH 2024, All rights reserved.
 // This project is released under the MIT License.
 
@@ -30,10 +30,10 @@
 #include "Day_11.h" // 11th day : Plutonian Pebbles      - first task solved
 #include "Day_12.h" // 12th day : Garden Groups          - first task solved
 #include "Day_13.h" // 13th day : Claw Contraption       - first task in progress
-#include "Day_14.h" // 14th day : Restroom Redoubt       - implementation started
-#include "Day_15.h" // 15th day : Warehouse Woes         - implementation started
-#include "Day_16.h" // 16th day : Reindeer Maze          - first solved
-#include "Day_17.h" // 17th day : Chronospatial Computer - implementation started
+#include "Day_14.h" // 14th day : Restroom Redoubt       - first task solved
+#include "Day_15.h" // 15th day : Warehouse Woes         - first task solved
+#include "Day_16.h" // 16th day : Reindeer Maze          - first task solved
+#include "Day_17.h" // 17th day : Chronospatial Computer - first task solved
 #include "Day_18.h" // 18th day : RAM Run                - both tasks solved 
 #include "Day_19.h" // 19th day : Linen Layout           - implementation started
 #include "Day_20.h" // 20th day : Race Condition         - implementation started
@@ -44,20 +44,13 @@
 #include "Day_25.h" // 25th day : Code Chronicle         - implementation started 
 
 #include <iostream>
-#include <string_view>
-#include <vector>
-#include <utility>
-#include <functional>
-#include <regex>
 #include <stdexcept>
-#include <execution>
-#include <atomic>
 #include <format>
 #include <print>
 #include <ranges>
 
 using namespace std::string_literals;
-using namespace std::placeholders;
+// using namespace std::placeholders;
 
 
 template <std::ranges::input_range range_ty>
@@ -81,10 +74,10 @@ TAOC2024Processes::cntrlDatas TAOC2024Processes::control = {
    { 11, {"11th day"s, "Plutonian Pebbles"s,      "https://adventofcode.com/2024/day/11"s, [](TMyForm& frm) { SetResult(frm, nsDay11::RiddleDay11(frm.GetText("memInput"))); },  statusRiddle::first_solved }},
    { 12, {"12th day"s, "Garden Groups"s,          "https://adventofcode.com/2024/day/12"s, [](TMyForm& frm) { SetResult(frm, nsDay12::RiddleDay12(frm.GetText("memInput"))); },  statusRiddle::first_solved }},
    { 13, {"13th day"s, "Claw Contraption"s,       "https://adventofcode.com/2024/day/13"s, [](TMyForm& frm) { SetResult(frm, nsDay13::RiddleDay13(frm.GetLines("memInput"))); }, statusRiddle::prepared }},
-   { 14, {"14th day"s, "Restroom Redoubt"s,       "https://adventofcode.com/2024/day/14"s, [](TMyForm& frm) { SetResult(frm, nsDay14::RiddleDay14(frm.GetLines("memInput"))); }, statusRiddle::prepared }},
-   { 15, {"15th day"s, "Warehouse Woes"s,         "https://adventofcode.com/2024/day/15"s, [](TMyForm& frm) { SetResult(frm, RiddleDay15(frm.GetLines("memInput"))); },          statusRiddle::prepared }},
+   { 14, {"14th day"s, "Restroom Redoubt"s,       "https://adventofcode.com/2024/day/14"s, [](TMyForm& frm) { SetResult(frm, nsDay14::RiddleDay14(frm.GetLines("memInput"))); }, statusRiddle::first_solved }},
+   { 15, {"15th day"s, "Warehouse Woes"s,         "https://adventofcode.com/2024/day/15"s, [](TMyForm& frm) { SetResult(frm, nsDay15::RiddleDay15(frm.GetText("memInput"))); },  statusRiddle::first_solved }},
    { 16, {"16th day"s, "Reindeer Maze"s,          "https://adventofcode.com/2024/day/16"s, [](TMyForm& frm) { SetResult(frm, nsDay16::RiddleDay16(frm.GetText("memInput"))); },  statusRiddle::first_solved }},
-   { 17, {"17th day"s, "Chronospatial Computer"s, "https://adventofcode.com/2024/day/17"s, [](TMyForm& frm) { SetResult(frm, nsDay17::RiddleDay17(frm.GetLines("memInput"))); }, statusRiddle::prepared }},
+   { 17, {"17th day"s, "Chronospatial Computer"s, "https://adventofcode.com/2024/day/17"s, [](TMyForm& frm) { SetResult(frm, nsDay17::RiddleDay17(frm.GetLines("memInput"))); }, statusRiddle::first_solved }},
    { 18, {"18th day"s, "RAM Run"s,                "https://adventofcode.com/2024/day/18"s, [](TMyForm& frm) { SetResult(frm, nsDay18::RiddleDay18(frm.GetLines("memInput"))); }, statusRiddle::both_solved }},
    { 19, {"19th day"s, "Linen Layout"s,           "https://adventofcode.com/2024/day/19"s, [](TMyForm& frm) { SetResult(frm, nsDay19::RiddleDay19(frm.GetLines("memInput"))); }, statusRiddle::prepared }},
    { 20, {"20th day"s, "Race Condition"s,         "https://adventofcode.com/2024/day/20"s, [](TMyForm& frm) { SetResult(frm, nsDay20::RiddleDay20(frm.GetLines("memInput"))); }, statusRiddle::prepared }},

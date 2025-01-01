@@ -174,4 +174,7 @@
       <Filter>Form</Filter>
     </QtUic>
   </ItemGroup>
+  <ItemGroup>
+    <Text Include="Log.txt" />
+  </ItemGroup>
 </Project>

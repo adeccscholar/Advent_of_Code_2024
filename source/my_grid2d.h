@@ -301,7 +301,7 @@ namespace own {
                      rest.first     = position.first;
                      position.first = 0;
                      }
-                  else if (position.first >= maximum.first) {
+                  else if (position.first >= maximum.first) {   
                      rest.first = position.first - (maximum.first - 1);
                      position.first = maximum.first - 1;
                      }
@@ -311,7 +311,7 @@ namespace own {
                      position.second = 0;
                      }
                   else if (position.second >= maximum.second) {
-                     rest.first = position.first - (maximum.second - 1);
+                     rest.second = position.second - (maximum.second - 1);
                      position.second = maximum.second - 1;
                      }
 
@@ -399,7 +399,7 @@ namespace own {
 
             data_ty&       get_data() { return data; }
             data_ty const& get_data() const { return data; }
-         private:
+         // private:
             int_ty row_as_int() const requires is_grid<kind> { return grid.to_int(std::get<0>(data)); }
             int_ty col_as_int() const requires is_grid<kind> { return grid.to_int(std::get<1>(data)); }
 
