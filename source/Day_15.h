@@ -59,7 +59,7 @@ inline std::pair<std::string, std::string> RiddleDay15(std::string&& input) {
 
    coord_ty roboter_pos{ grid, 0, 0 }, end_at = { grid, 0, 0 };
    if (auto pos = std::find(grid.begin(), grid.end(), EWarehouse::used); pos != grid.end()) {
-      roboter_pos = grid.GetCoordinates(pos);
+      roboter_pos = grid.get_coords(pos);
       }
 
  
@@ -101,7 +101,7 @@ inline std::pair<std::string, std::string> RiddleDay15(std::string&& input) {
 
    size_t result_1 = 0, result_2 = 0;
    for(auto pos = std::find(grid.begin(), grid.end(), EWarehouse::box); pos != grid.end(); pos = std::find(++pos, grid.end(), EWarehouse::box )) {
-      auto coord = grid.GetCoordinates(pos);
+      auto coord = grid.get_coords(pos);
       result_1 += (coord.y() * 100 + coord.x());
       }
 

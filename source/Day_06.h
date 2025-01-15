@@ -20,30 +20,139 @@
 #include <memory>
 #include <tuple>
 #include <array>
+#include <optional>
 #include <unordered_set>
 #include <ranges>
+//#include <expected>
 #include <print>
 
 namespace nsDay06 {
 
+
+   template <typename ty, typename = void>
+   struct has_get_coords : std::false_type {};
+
+   template <typename ty>
+   struct has_get_coords<ty, std::void_t<decltype(std::declval<ty>().get_coords())>> : std::true_type {};
+
+   template <typename ty>
+   constexpr bool has_get_coords_v = has_get_coords<ty>::value;
+
+   // -----------------------------------------------------------------------------
+
+   template <typename ty, typename = void>
+   struct has_base : std::false_type {};
+
+   template <typename ty>
+   struct has_base<ty, std::void_t<decltype(std::declval<ty>().base())>> : std::true_type {};
+
+   template <typename ty>
+   constexpr bool has_base_v = has_base<ty>::value;
+
+   // -----------------------------------------------------------------------------
+
+   template <typename ty, typename = void>
+   struct has_reverse_iterator_traits : std::false_type {};
+
+   template <typename ty>
+   struct has_reverse_iterator_traits<ty, std::void_t<typename ty::iterator_type, decltype(std::declval<ty>().base())>> : std::true_type {};
+
+   template <typename ty>
+   constexpr bool has_reverse_iterator_traits_v = has_reverse_iterator_traits<ty>::value;
+
+   // -----------------------------------------------------------------------------
+
+   template <typename ty>
+   concept ReverseIteratorWithGetCoords = has_reverse_iterator_traits_v<ty> &&      
+                                          has_get_coords_v<typename ty::iterator_type>; 
+
+   template <typename Iter_ty>
+   concept PathViewIterator = // std::input_or_output_iterator<Iter_ty> &&
+                              (has_get_coords_v<Iter_ty> || ReverseIteratorWithGetCoords<Iter_ty>); 
+
+   // -----------------------------------------------------------------------------
+
+
+
+
 enum class EDirections : char {
    upward = '^', right = '>', downward = 'v', left = '<'
-  };
+   };
+
+static std::map<EDirections, EDirections> directions_rules = {
+         { EDirections::upward ,  EDirections::right },
+         { EDirections::right,    EDirections::downward },
+         { EDirections::downward, EDirections::left },
+         { EDirections::left,     EDirections::upward }
+   };
 
 
-template <own::grid::my_grid_ty grid_ty>
-void step_func(grid_ty const& grid, typename grid_ty::coord_ty const& coords, EDirections direction,
-               std::vector<std::tuple<typename grid_ty::coord_ty, EDirections, bool>>& path) {
+const size_t UseLogLevel = 0;
+
+template <EDirections direction, own::grid::my_grid_ty grid_ty>
+std::optional<typename grid_ty::coord_ty> move_func(grid_ty const& grid,
+                                                    typename grid_ty::path_view const& view, 
+                                                    typename grid_ty::coord_ty const& start,
+                                                    std::vector<std::tuple<typename grid_ty::coord_ty, EDirections, bool>>& retvals) {
    using coord_ty = typename grid_ty::coord_ty;
    using path_ty = std::tuple<typename grid_ty::coord_ty, EDirections, bool>;
-   coord_ty element(coords);
-   //if (std::ranges::find_if(path, [&coords](auto const& elem) { return std::get<0>(elem) == coords; }) == path.end()) {
-      path.emplace_back(path_ty { element, direction, false });
-   //   }
-   //else path.emplace_back(path_ty { element, direction, true });;
+   
+   auto start_it = [&view, &start]() { if constexpr (direction == EDirections::upward) return view.rpos(start.row());
+                                           else if constexpr (direction == EDirections::right) return view.pos(start.col());
+                                           else if constexpr (direction == EDirections::downward) return view.pos(start.row());
+                                           else return view.rpos(start.col());  }();
+
+   auto end_it   = [&view]() { if constexpr (direction == EDirections::upward || direction == EDirections::left) return view.rend();
+                               else return view.end(); }();
+   
+   // reverse iterator moved in one position, increment isn't 
+   if(auto it = std::find(start_it, end_it, '#'); it != end_it) {
+      if constexpr (direction == EDirections::upward || direction == EDirections::left) {
+         if constexpr (UseLogLevel > 3) {
+           std::println(std::cout, "Found: ({}, {})", (it.base() - 1).get_coords().row(), (it.base() - 1).get_coords().col());
+            }
+         for (auto iter = start_it; iter != it - 1; ++iter) {
+            coord_ty element((iter.base() - 1).get_coords());
+            retvals.emplace_back(path_ty { element, direction, false } );
+            }
+         }
+      else {
+         if constexpr (UseLogLevel > 3) {
+            std::println(std::cout, "Found: ({}, {})", it.get_coords().row(), it.get_coords().col());
+            }
+         for (auto iter = ++start_it; iter != it - 1; ++iter) {
+            coord_ty element(iter.get_coords());
+            retvals.emplace_back(path_ty{ element, direction, false });
+            }   
+         }
+      if constexpr (direction == EDirections::upward || direction == EDirections::left) {
+         coord_ty element(((it - 1).base() - 1).get_coords());
+         retvals.emplace_back(path_ty{ element, direction, true });
+         return element;
+         }
+      else {
+         coord_ty element((it - 1).get_coords());
+         retvals.emplace_back(path_ty{ element, direction, true });
+         return element;
+         }
+      }
+   else {
+      if constexpr (direction == EDirections::upward || direction == EDirections::left) {
+         for (auto iter = start_it; iter != end_it; ++iter) {
+            coord_ty element((iter.base() - 1).get_coords());
+            retvals.emplace_back(path_ty{ element, direction, false });
+            }
+         }
+      else {
+         for (auto iter = ++start_it; iter != end_it; ++iter) {
+            coord_ty element(iter.get_coords());
+            retvals.emplace_back(path_ty{ element, direction, false });
+            }
+         }
+      return std::nullopt;
+      }
    }
 
-const size_t UseLogLevel = 3;
 
 template <size_t LogLevel = UseLogLevel>
 inline std::pair<std::string, std::string> RiddleDay6(std::string&& text) { 
@@ -64,108 +173,96 @@ inline std::pair<std::string, std::string> RiddleDay6(std::string&& text) {
    using path_ty = std::tuple<coord_ty, EDirections, bool>;
    std::vector<path_ty> path;
 
-   auto turn_right = [](EDirections dir) -> EDirections {
-      static std::map<EDirections, EDirections> rules = {
-               { EDirections::upward ,  EDirections::right },
-               { EDirections::right,    EDirections::downward },
-               { EDirections::downward, EDirections::left },
-               { EDirections::left,     EDirections::upward }
-               };
-      return rules[dir];
-      };
-
- 
-   using move_ret_type = std::tuple<size_t, size_t, bool>;
-   std::map<EDirections, std::function<move_ret_type(size_t row, size_t col, bool edge)>> moves_func = {
-      { EDirections::upward, [&grid, &vertical, &path](size_t row, size_t col, bool edge) -> move_ret_type {
-              grid_ty::path_view view(grid, vertical[col]);
-              auto start = view.rpos(row);
-              if (auto it = std::find(start, view.rend(), '#'); it != view.rend()) {
-                 for (auto iter = start; iter != it; ++iter) {
-                    step_func(grid, (iter.base() - 1).get_coords(), EDirections::upward, path); // from reverse
-                    }
-                 auto const& new_row = (it.base() - 1).get_coords().row();
-                 auto const& new_col = (it.base() - 1).get_coords().col();
-                 return { new_row + 1, new_col, true };
-                 }
-              else {
-                 for (auto iter = start; iter != it; ++iter) {
-                    step_func<grid_ty>(grid, (iter.base() - 1).get_coords(), EDirections::upward, path); // from reverse
-                    }
-                 return { 0, col, false };
-                 }
-              }},
-      { EDirections::right, [&grid, &horizontal, &path](size_t row, size_t col, bool edge) -> move_ret_type {
-              grid_ty::path_view view(grid, horizontal[row]);
-              auto start = view.pos(col);
-              if (auto it = std::find(start, view.end(), '#'); it != view.end()) {
-                 for (auto iter = start + 1; iter != it; ++iter)  { step_func<grid_ty>(grid, iter.get_coords(), EDirections::right, path); };
-                 auto const& new_row = it.get_coords().row();
-                 auto const& new_col = it.get_coords().col();
-                 return { new_row, new_col - 1, true };
-                 }
-              else {
-                 for (auto iter = start + 1; iter != it; ++iter) { step_func<grid_ty>(grid, iter.get_coords(), EDirections::right, path); };
-                 return { row, grid.cols(), false };
-                 }
-              }},
-      { EDirections::downward, [&grid, &vertical, &path](size_t row, size_t col, bool edge) -> move_ret_type {
-              grid_ty::path_view view(grid, vertical[col]);
-              auto start = view.pos(row);
-              if (auto it = std::find(start, view.end(), '#'); it != view.end()) {
-                 for (auto iter = start + 1; iter != it; ++iter)  { step_func<grid_ty>(grid, iter.get_coords(), EDirections::downward, path); }
-                 auto const& new_row = it.get_coords().row();
-                 auto const& new_col = it.get_coords().col();
-                 return { new_row - 1, new_col, true };
-                 } 
-              else {
-                 for (auto iter = start + 1; iter != it; ++iter) { step_func<grid_ty>(grid, iter.get_coords(), EDirections::downward, path); }
-                 return { grid.rows(), col, false };
-                 }
-              }},
-      { EDirections::left, [&grid, &horizontal, &path](size_t row, size_t col, bool edge) -> move_ret_type {
-              grid_ty::path_view view(grid, horizontal[row]);
-              auto start = view.rpos(col);
-              if (auto it = std::find(start, view.rend(), '#'); it != view.rend()) {
-                 for (auto iter = start; iter != it; ++iter) { step_func<grid_ty>(grid, (iter.base() - 1).get_coords(), EDirections::left, path); }; // from reverse
-                 auto const& new_row = (it.base() - 1).get_coords().row();
-                 auto const& new_col = (it.base() - 1).get_coords().col();
-                 return { new_row, new_col + 1, true };
-                 }
-              else {
-                 for (auto iter = start; iter != it; ++iter) { step_func<grid_ty>(grid, (iter.base() - 1).get_coords(), EDirections::left, path); } // from reverse
-                 return { 0, col, false };
-                 }
-              } }
-      };
-
    size_t result_1 = 0, result_2 = 0;
 
    if(auto pos = std::find(grid.begin(), grid.end(), '^'); pos != grid.end()) {
-      auto const& c_row = grid(std::distance(grid.begin(), pos)).row();
-      auto const& c_col = grid(std::distance(grid.begin(), pos)).col();
-      path.emplace_back( path_ty { coord_ty { grid, c_row, c_col }, EDirections::upward, false });
+      auto current = grid.get_coords(pos);
       EDirections move = EDirections::upward;
-      auto [row_, col_, ok_] = moves_func[move](c_row, c_col, true);
-      for(; ok_; std::tie(row_, col_, ok_) = moves_func[move](row_, col_, true)) {
-         //edges.insert({{ grid, row_, col_ }, move });
-         move = turn_right(move);
+      path.emplace_back( path_ty { current, EDirections::upward, false });
+
+      auto call_func = [&grid, &path, &horizontal, &vertical](coord_ty const& position, EDirections direction) {
+         switch(direction) {
+            case EDirections::upward: { 
+               grid_ty::path_view view(grid, vertical[position.col()]); 
+               return move_func<EDirections::upward>(grid, view, position, path);
+               }
+            case EDirections::right: {
+               grid_ty::path_view view(grid, horizontal[position.row()]);
+               return move_func<EDirections::right>(grid, view, position, path);
+               }
+            case EDirections::downward: {
+               grid_ty::path_view view(grid, vertical[position.col()]);
+               return move_func<EDirections::downward>(grid, view, position, path);
+               }
+            case EDirections::left: {
+               grid_ty::path_view view(grid, horizontal[position.row()]);
+               return move_func<EDirections::left>(grid, view, position, path);
+               }
+            default: throw std::runtime_error("unexpected direction, shouldn't be possible");
+            }
+         };
+
+      for (auto position = call_func(current, move); position; position = call_func(*position, move)) {
+         move = directions_rules[move];
          }
-     }
-  // 236 to low
+      }
 
+   for(auto it = path.begin(); it != path.end(); ++it) {
+      if (std::get<2>(*it)) continue;
+      auto const& direction = directions_rules[std::get<1>(*it)];
 
+      static auto compare = [&it, direction](path_ty const& it2) {
+         if(std::get<2>(it2) == true) {
+            if (direction == std::get<1>(it2)) {
+               auto coord1 = std::get<0>(*it);
+               auto coord2 = std::get<0>(it2);
+               switch(direction) {
+                  case EDirections::downward:
+                     if (coord1.col() == coord2.col() && coord1.row() < coord2.row()) return true;
+                     else return false;
+                  case EDirections::upward:
+                     if (coord1.col() == coord2.col() && coord1.row() > coord2.row()) return true;
+                     else return false;
+                  case EDirections::left:
+                  case EDirections::right:
+                     return true;
+                  default:
+                     throw std::runtime_error("unexpected directions in the path.")
+                  }
+               }
+            else [[likely]] {
+               return false;
+               }
+            }
+         else [[likely]] return false;
+         };
 
-   //if constexpr (LogLevel > 3) for (auto const& p : path) std::println(std::cout, "{}", p);
+      auto reverse_it = std::make_reverse_iterator(it);
+      auto found_edge = std::find_if(reverse_it, path.rend(), [](auto rev_it) { return compare(rev_it); });  // row or col, turn, ...
+      if (found_edge != path.rend()) ; // hit
+      }
+
+   
+   if constexpr (LogLevel > 3) {
+      for(auto const& pos : path) { 
+         std::println(std::cout, "({:>2}, {:>2}) {} - {}", std::get<0>(pos).row(), std::get<0>(pos).col(), 
+                                                           static_cast<char>(std::get<1>(pos)),
+                                                           std::get<2>(pos) ? "edge" : "way");
+         }
+      }
+
+   // 236 to low
+
    std::unordered_set<coord_ty, hash_ty> counter;
    for (auto const& [coord, dir, edge] : path) {
       counter.insert(coord);
       grid[coord] = static_cast<char>(dir);
       }
-   //if constexpr (LogLevel > 1) {
+   
+   if constexpr (LogLevel > 1) {
       grid.print(std::cout, 1);
       std::println(std::cout, "");
-   //   }
+      }
    
    result_1 = counter.size();
    result_2 = path.size(); // std::ranges::count_if(path, [](auto const& e) { return std::get<2>(e) == true; });

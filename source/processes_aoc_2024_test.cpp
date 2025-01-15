@@ -29,13 +29,132 @@ using namespace std::string_view_literals;
 
 bool TAOC2024Processes::boHasTestButton = true;
 
-void TAOC2024Processes::TestCase(TMyForm&& frm) {
-   std::println(std::cout, "test {}", 100000000 % 16777216);
+#include <iostream>
+#include <vector>
+#include <queue>
+#include <limits>
+#include <optional>
+#include <unordered_set>
+#include <cmath>
 
+struct equation_ty {
+   uint64_t a_x, a_y;
+   uint64_t b_x, b_y;
+   uint64_t x_t, y_t;
+   };
+
+struct Node {
+   uint64_t aCount, bCount;
+   equation_ty values;
+
+   struct Hash {
+      size_t operator()(const Node& n) const {
+         return std::hash<size_t>()(n.aCount) << 32 ^ std::hash<size_t>()(n.bCount);
+         }
+      };
+
+   struct Compare {
+      bool operator()(Node const& a, Node const& b) const {
+         return a.Costs() > b.Costs();
+         }
+      };
+
+   Node(equation_ty const& vals, uint64_t a_val, uint64_t b_val) : values(vals), aCount(a_val), bCount(b_val) { }
+   Node(Node const& other) : values(other.values), aCount(other.aCount), bCount(other.bCount) {}
+
+   Node IncrementA() { return Node(values, aCount + 1, bCount);     }
+   Node IncrementB() { return Node(values, aCount,     bCount + 1); }
+
+   uint64_t Costs() const {
+      return aCount * 3 + bCount;
+      }
+
+   bool operator == (Node const& other) const {
+      return aCount == other.aCount && bCount == other.bCount;
+      }
+
+   bool isGreater() const {
+      return aCount * values.a_x + bCount * values.b_x > values.x_t || aCount * values.a_y + bCount * values.b_y > values.y_t;
+      }
+
+   bool isSolution() const {
+      return aCount * values.a_x + bCount * values.b_x == values.x_t && aCount * values.a_y + bCount * values.b_y == values.y_t;
+      }
+   };
+
+
+std::optional<Node> solve(equation_ty const& equation) {
+
+
+   std::priority_queue<Node, std::vector<Node>, Node::Compare> pq;
+   std::unordered_set<Node, Node::Hash> visited; 
+
+   Node root = { equation, 0, 0 };
+   pq.push(root);
+   visited.insert(root);
+
+   while (!pq.empty()) {
+      Node current = pq.top();
+      pq.pop();
+
+      if (current.isGreater()) continue;
+      if (current.isSolution()) {
+         return current;
+      }
+
+      for(auto && child : { current.IncrementA(), current.IncrementB() }) {
+         if (!child.isGreater() && visited.find(child) == visited.end()) {
+            visited.insert(child);
+            pq.emplace(child);
+            }
+         }
+      }
+   return std::nullopt;
+   }
+
+/*
+void TAOC2024Processes::TestCase(TMyForm&& frm) {
+   equation_ty equation = { 94, 34, 22, 67, 8400, 5400 };
+   //equation_ty equation = { 26, 66, 67, 21, 12748, 12176 };
+   //equation_ty equation = { 17, 86, 84, 37, 7870, 6450 };
+   auto result = solve(equation);
+   if (result) std::println(std::cout, "test {}, {}, costs {}", result->aCount, result->bCount, result->Costs());
+   else std::println(std::cout, "no solution");
    std::println(std::cout, "test");
 
    }
+*/
 
+void TAOC2024Processes::TestCase(TMyForm&& frm) {
+   auto text = frm.GetText("memInput");
+   const auto rows = std::ranges::count(text, '\n');
+   const auto cols = text.size() / std::ranges::count(text, '\n') - 1;
+   const own::grid::EKind grid_kind = own::grid::EKind::grid;
+   using grid_ty = own::grid::grid_2D<char, grid_kind>;
+   using coord_ty = typename grid_ty::coord_ty;
+   using hash_ty = typename grid_ty::coord_ty_hash;
+
+   text.erase(std::ranges::remove(text, '\n').begin(), text.end());
+   grid_ty grid(rows, cols);
+   grid = text;
+
+   auto horizontal = own::grid::find_horz_paths<char, own::grid::EKind::grid>(grid);
+   auto vertical = own::grid::find_vert_paths<char, grid_kind>(grid);
+
+   if (auto pos = std::find(grid.begin(), grid.end(), '^'); pos != grid.end()) {
+      auto current = grid.get_coords(pos);
+      std::println(std::cout, "{}, {}", current.row(), current.col());
+      grid_ty::path_view view(grid, vertical[current.col()]);
+      auto start_it = view.rpos(current.row());
+      coord_ty start_pos((start_it.base()).get_coords());
+      std::println(std::cout, "{}, {}", start_pos.row(), start_pos.col());
+      if (auto it = std::find(start_it, view.rend(), '#'); it != view.rend()) {
+         coord_ty element((it.base()).get_coords());
+         std::println(std::cout, "{}, {}", element.row(), element.col());
+         }
+      }
+   return;
+   }
 
 TAOC2024Processes::testDatas TAOC2024Processes::test = {
    {  1, { "3   4\n4   3\n2   5\n1   3\n3   9\n3   3"s, 
@@ -62,19 +181,19 @@ TAOC2024Processes::testDatas TAOC2024Processes::test = {
            "............\n............\n........A...\n.........A..\n............\n............"s, 
            testData {       14u,    34u } } },
    {  9, { "2333133121414131402"s, 
-           testData {     1928u,     0u } } },
+           testData {     1928u,  2858u } } },
    { 10, { "89010123\n78121874\n87430965\n96549874\n45678903\n32019012\n01329801\n10456732"s, 
-           testData {       36u,     0u } } },
+           testData {       36u,    81u } } },
    { 11, { "125 17"s, 
            testData {    55312u,     0u } } },
    { 12, { "RRRRIICCFF\nRRRRIICCCF\nVVRRRCCFFF\nVVRCCCJFFF\nVVVVCJJCFE\nVVIVCCJJEE\n"s +
            "VVIIICJJEE\nMIIIIIJJEE\nMIIISIJEEE\nMMMISSJEEE"s, 
            testData {     1930u,  1206u } } },
-   { 13, { "Button A : X + 94, Y + 34\nButton B : X + 22, Y + 67\nPrize : X = 8400, Y = 5400\n\n"s +
-           "Button A : X + 26, Y + 66\nButton B : X + 67, Y + 21\nPrize : X = 12748, Y = 12176\n\n"s +
-           "Button A : X + 17, Y + 86\nButton B : X + 84, Y + 37\nPrize : X = 7870, Y = 6450\n\n"s +
-           "Button A : X + 69, Y + 23\nButton B : X + 27, Y + 71\nPrize : X = 18641, Y = 10279" , 
-           testData {       36u,     0u } } },
+   { 13, { "Button A: X+94, Y+34\nButton B: X+22, Y+67\nPrize: X=8400, Y=5400\n\n"s +
+           "Button A: X+26, Y+66\nButton B: X+67, Y+21\nPrize: X=12748, Y=12176\n\n"s +
+           "Button A: X+17, Y+86\nButton B: X+84, Y+37\nPrize: X=7870, Y=6450\n\n"s +
+           "Button A: X+69, Y+23\nButton B: X+27, Y+71\nPrize: X=18641, Y=10279" , 
+           testData {      480u,     0u } } },
    { 14, { "p=0,4 v=3,-3\np=6,3 v=-1,-3\np=10,3 v=-1,2\np=2,0 v=2,-1\np=0,0 v=1,3\n" +
            "p=3,0 v=-2,-2\np=7,6 v=-1,-3\np=3,0 v=-1,-2\np=9,3 v=2,3\np=7,3 v=-1,2\n"s +
            "p=2,4 v=2,-3\np=9,5 v=-3,-3"s, 

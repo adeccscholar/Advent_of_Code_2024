@@ -135,6 +135,12 @@
     <ClInclude Include="Day_06_unused.h">
       <Filter>Header - Days</Filter>
     </ClInclude>
+    <ClInclude Include="Day_13_unused.h">
+      <Filter>Header - Days</Filter>
+    </ClInclude>
+    <ClInclude Include="Day_06-old.h">
+      <Filter>Header - Days</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <Filter Include="Header">

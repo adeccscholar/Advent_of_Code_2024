@@ -56,7 +56,7 @@ inline std::pair<std::string, std::string> RiddleDay8(std::string&& text) {
    std::map<char, std::vector<coord_ty>> values;
    for (auto it = std::find_if(grid.begin(), grid.end(), not_empty); it != grid.end();
       it = std::find_if(++it, grid.end(), not_empty)) {
-      values[*it].emplace_back(grid.GetCoordinates(it));
+      values[*it].emplace_back(grid.get_coords(it));
       }
 
    std::set<coord_ty> antinodes;

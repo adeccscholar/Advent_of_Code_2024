@@ -2,21 +2,27 @@
 last stream 
 
 16th 
+22th
 
 --------------------
+
+10th day simple dfs, one time as set and the other as vector
+14th day grid operations without content, only coords, 2nd part only visual
+y17th day functional, map with operations, registers, rules
+
+--------------------
+
 last steps
 
-14th day
-15th day
-17th day
+15th day grid, moving positions, working with directions
+13th day with a kind of Dijkstra's
 
 -------------------
 next steps
 
-10th day
+6th day finishing
+9th day finishing
 24th day is prepared
 
 -------------------
-still planned
-
-13th
+13th 2nd part bruce force need an eternity

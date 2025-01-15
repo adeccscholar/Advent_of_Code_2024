@@ -197,10 +197,10 @@ inline std::pair<std::string, std::string> RiddleDay16(std::string&& text) {
 
    coord_ty start_at { grid, 0, 0 }, end_at = { grid, 0, 0 };
    if (auto pos = std::find(grid.begin(), grid.end(), EMaze::start_at); pos != grid.end()) {
-      start_at = grid.GetCoordinates(pos);
+      start_at = grid.get_coords(pos);
       }
    if (auto pos = std::find(grid.begin(), grid.end(), EMaze::end_at); pos != grid.end()) {
-      end_at = grid.GetCoordinates(pos);
+      end_at = grid.get_coords(pos);
       }
 
    //*
