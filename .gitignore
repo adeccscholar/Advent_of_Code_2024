@@ -31,9 +31,6 @@
 *.out
 *.app
 
-#visual studio
-*.aps
-
 # special embarcadero files or directories
 __history
 __astcache
@@ -46,4 +43,5 @@ Win32
 Win64
 Release
 Debug
+out
 .vs
